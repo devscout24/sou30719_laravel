@@ -10,19 +10,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(AuthController::class)->group(function () {
+    // Registration & email verification
     Route::post('/user-signup', 'signup');
+    Route::post('/verify-email', 'verifyEmail');
+
+    // Login & logout
     Route::post('/user-signin', 'signin');
     Route::post('/user-logout', 'logout');
-    Route::post('/user-delete', 'deleteUser');
 
-    // Store FCM Token
-    Route::post('/store-user-fcm-token', 'storeFcmToken');
-    Route::post('/delete-user-fcm-token', 'deleteFcmToken');
-
-    // OTP verify
+    // Forgot password flow
     Route::post('/forgot-password', 'sendOtp');
     Route::post('/verify-otp', 'verifyOtp');
     Route::post('/reset-password', 'resetPassword');
+
+    // Account management
+    Route::post('/user-delete', 'deleteUser');
+    Route::post('/store-user-fcm-token', 'storeFcmToken');
+    Route::post('/delete-user-fcm-token', 'deleteFcmToken');
 });
 
 Route::controller(ProfileController::class)->middleware('auth:api')->group(function () {
@@ -55,8 +59,6 @@ Route::controller(HelpCenterController::class)->middleware('auth:api')->group(fu
 Route::controller(PolicyController::class)->middleware('auth:api')->group(function () {
     Route::get('/get-policies-disclaimers', 'getDisclaimersPolicy');
 });
-
-
 
 // Provider API Routes
 

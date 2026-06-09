@@ -5,109 +5,178 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Traits\ApiResponse;
+use App\Mail\OtpSend;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use Illuminate\Support\Str;
-use App\Mail\OtpSend;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     use ApiResponse;
 
+    // -----------------------------------------------------------------------
+    // REGISTRATION
+    // -----------------------------------------------------------------------
+
+    /**
+     * Register a new user.
+     * - Auto-generates a demo name and username from the email prefix.
+     * - Sends a 6-digit OTP to the email for verification.
+     * - Returns NO token — user must verify email before logging in.
+     */
     public function signup(Request $request)
     {
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'name'     => 'nullable|string|max:100',
-                'email'    => 'required|email|max:255|unique:users,email',
-                'password' => 'required|string|min:6|confirmed',
-            ],
-            [
-                'email.required'     => 'Email is required',
-                'email.email'        => 'Email must be valid',
-                'email.unique'       => 'Email already exists',
-                'password.required'  => 'Password is required',
-                'password.min'       => 'Password must be at least 6 characters',
-                'password.confirmed' => 'Password confirmation does not match',
-            ]
-        );
+        $validator = Validator::make($request->all(), [
+            'email'                 => 'required|email|max:255|unique:users,email',
+            'password'              => 'required|string|min:6|confirmed',
+        ], [
+            'email.required'        => 'Email is required.',
+            'email.email'           => 'Email must be valid.',
+            'email.unique'          => 'This email is already registered.',
+            'password.required'     => 'Password is required.',
+            'password.min'          => 'Password must be at least 6 characters.',
+            'password.confirmed'    => 'Password confirmation does not match.',
+        ]);
 
         if ($validator->fails()) {
             return $this->error($validator->errors(), $validator->errors()->first(), 422);
         }
 
-        // Create user
-        $user = User::create([
-            'name'          => $request->name ?? null,
-            'email'         => $request->email,
-            'password'      => bcrypt($request->password),
-            'status'        => 'active',
-            'last_login_at' => now(),
-        ]);
+        // Auto-generate demo name and unique username from the email prefix
+        $prefix   = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', explode('@', $request->email)[0]));
+        $name     = ucfirst($prefix);
+        $username = $prefix . rand(1000, 9999);
 
-        // Assign default role
-        $user->assignRole('user');
-
-        // JWT login
-        $token = Auth::guard('api')->attempt([
-            'email'    => $request->email,
-            'password' => $request->password,
-        ]);
-
-        if (!$token) {
-            return $this->error([], 'Registration successful but token generation failed', 500);
+        while (User::where('username', $username)->exists()) {
+            $username = $prefix . rand(1000, 9999);
         }
 
+        $user = User::create([
+            'name'     => $name,
+            'username' => $username,
+            'email'    => $request->email,
+            'password' => $request->password,  // 'hashed' cast handles bcrypt
+            'status'   => 'active',
+        ]);
+
+        $user->assignRole('user');
+
+        // Generate and send email-verification OTP
+        [$otp, $expiresAt] = $this->generateOtp($user);
+
+        Mail::to($user->email)->send(new OtpSend($otp, 'Verify Your Email'));
+
         return $this->success([
-            'id'     => $user->id,
-            'token'  => $token,
-            'name'   => $user->name ?? '',
-            'email'  => $user->email,
-            'role'   => $user->getRoleNames()->first(),
-            'status' => $user->status,
-        ], 'Registration successful', 200);
+            'email' => $user->email,
+        ], 'Registration successful. Please check your email for the verification code.', 201);
     }
 
+    // -----------------------------------------------------------------------
+    // EMAIL VERIFICATION
+    // -----------------------------------------------------------------------
 
+    /**
+     * Verify the user's email with the OTP sent during registration (or re-sent on login).
+     * On success, marks email as verified and returns a JWT token (auto-login).
+     */
+    public function verifyEmail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'otp'   => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors(), $validator->errors()->first(), 422);
+        }
+
+        $user = User::where('email', $request->email)
+            ->where('otp', $request->otp)
+            ->first();
+
+        if (!$user) {
+            return $this->error([], 'Invalid OTP.', 400);
+        }
+
+        if (Carbon::now()->gt($user->otp_expired_at)) {
+            $user->update(['otp' => null, 'otp_expired_at' => null]);
+            return $this->error([], 'OTP has expired. Please try logging in again to receive a new code.', 400);
+        }
+
+        $user->update([
+            'email_verified_at' => Carbon::now(),
+            'otp'               => null,
+            'otp_expired_at'    => null,
+            'last_login_at'     => now(),
+        ]);
+
+        $token = Auth::guard('api')->login($user);
+
+        return $this->success([
+            'id'       => $user->id,
+            'token'    => $token,
+            'name'     => $user->name,
+            'email'    => $user->email,
+            'username' => $user->username,
+            'role'     => $user->getRoleNames()->first(),
+            'status'   => $user->status,
+        ], 'Email verified successfully.', 200);
+    }
+
+    // -----------------------------------------------------------------------
+    // LOGIN
+    // -----------------------------------------------------------------------
+
+    /**
+     * Sign in.
+     * - If credentials are wrong: 401.
+     * - If email is NOT verified: sends a fresh OTP and returns 403.
+     * - If email IS verified: returns JWT token.
+     */
     public function signin(Request $request)
     {
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'email'    => 'required|email',
-                'password' => 'required|string|min:6',
-            ],
-            [
-                'email.required'    => 'Email is required',
-                'email.email'       => 'Invalid email address',
-                'password.required' => 'Password is required',
-            ]
-        );
+        $validator = Validator::make($request->all(), [
+            'email'    => 'required|email',
+            'password' => 'required|string|min:6',
+        ], [
+            'email.required'    => 'Email is required.',
+            'email.email'       => 'Invalid email address.',
+            'password.required' => 'Password is required.',
+        ]);
 
         if ($validator->fails()) {
             return $this->error($validator->errors(), $validator->errors()->first(), 422);
         }
 
         $credentials = $request->only('email', 'password');
-
-        $token = Auth::guard('api')->attempt($credentials);
+        $token       = Auth::guard('api')->attempt($credentials);
 
         if (!$token) {
-            return $this->error([], 'Invalid email or password', 401);
+            return $this->error([], 'Invalid email or password.', 401);
         }
 
         $user = Auth::guard('api')->user();
 
-        $user->update([
-            'last_login_at' => now(),
-        ]);
+        // Block login if email not verified — invalidate JWT, send fresh OTP
+        if (!$user->email_verified_at) {
+            Auth::guard('api')->logout();
+
+            [$otp, $expiresAt] = $this->generateOtp($user);
+
+            Mail::to($user->email)->send(new OtpSend($otp, 'Verify Your Email'));
+
+            return $this->error([
+                'email' => $user->email,
+            ], 'Your email is not verified. A new verification code has been sent to your email.', 403);
+        }
+
+        $user->update(['last_login_at' => now()]);
 
         return $this->success([
             'id'       => $user->id,
@@ -117,112 +186,121 @@ class AuthController extends Controller
             'username' => $user->username,
             'role'     => $user->getRoleNames()->first(),
             'status'   => $user->status,
-        ], 'Login successful', 200);
+        ], 'Login successful.', 200);
     }
 
-
+    // -----------------------------------------------------------------------
+    // LOGOUT
+    // -----------------------------------------------------------------------
 
     public function logout()
     {
         try {
-            // Get token from request
             $token = JWTAuth::getToken();
 
             if (!$token) {
-                return $this->error([], 'Token not provided', 401);
+                return $this->error([], 'Token not provided.', 401);
             }
 
-            // Invalidate token
             JWTAuth::invalidate($token);
 
-            return $this->success([], 'Successfully logged out', 200);
+            return $this->success([], 'Successfully logged out.', 200);
         } catch (JWTException $e) {
             return $this->error([], 'Failed to logout. ' . $e->getMessage(), 500);
         }
     }
 
+    // -----------------------------------------------------------------------
+    // FORGOT PASSWORD FLOW
+    // -----------------------------------------------------------------------
 
-
+    /**
+     * Send a password-reset OTP.
+     * Works even if the user's email is not yet verified.
+     */
     public function sendOtp(Request $request)
     {
-        // Validate incoming email
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
         ]);
 
-        // Check if user exists
+        if ($validator->fails()) {
+            return $this->error($validator->errors(), $validator->errors()->first(), 422);
+        }
+
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            return $this->error([], 'User with this email does not exist.', 404);
+            return $this->error([], 'No account found with this email address.', 404);
         }
 
-        // Generate OTP and expiry
-        $otp = rand(1000, 9999);
-        $expiresAt = Carbon::now()->addMinutes(15);
+        [$otp, $expiresAt] = $this->generateOtp($user);
 
-        // Save OTP and expiry to user
-        $user->update([
-            'otp' => $otp,
-            'otp_expired_at' => $expiresAt,
-        ]);
+        Mail::to($user->email)->send(new OtpSend($otp, 'Password Reset Code'));
 
-        // Send OTP via email
-        // Mail::to($user->email)->send(new OtpSend($otp)); // Temporary comment
-
-        // Return success response (without exposing OTP in production)
         return $this->success([
             'email' => $user->email,
-            'otp' => $otp, // Remove this line in production
-            'expires_at' => $expiresAt,
-        ], 'OTP sent successfully.', 200);
+        ], 'A password reset code has been sent to your email.', 200);
     }
 
-
-
+    /**
+     * Verify the password-reset OTP and return a short-lived reset token.
+     */
     public function verifyOtp(Request $request)
     {
-
-        $request->validate([
-            'otp' => 'required',
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
+            'otp'   => 'required|string',
         ]);
 
-        $user = User::where('email', $request->email)->where('otp', $request->otp)->first();
-
-        if (!$user) {
-            return $this->error([], 'Invalid otp', 400);
-        } else if ($user->otp_expired_at < Carbon::now()) {
-
-            $user->otp = null;
-            $user->otp_expired_at = null;
-            $user->save();
-
-            return $this->error([], 'OTP expired', 400);
+        if ($validator->fails()) {
+            return $this->error($validator->errors(), $validator->errors()->first(), 422);
         }
 
-        $user->otp_verified_at                 = Carbon::now();
-        $user->password_reset_token            = Str::random(64);
-        $user->password_reset_token_expires_at = Carbon::now()->addMinutes(15);
-        $user->save();
+        $user = User::where('email', $request->email)
+            ->where('otp', $request->otp)
+            ->first();
+
+        if (!$user) {
+            return $this->error([], 'Invalid OTP.', 400);
+        }
+
+        if (Carbon::now()->gt($user->otp_expired_at)) {
+            $user->update(['otp' => null, 'otp_expired_at' => null]);
+            return $this->error([], 'OTP has expired. Please request a new one.', 400);
+        }
+
+        $resetToken = Str::random(64);
+
+        $user->update([
+            'otp'                          => null,
+            'otp_expired_at'               => null,
+            'otp_verified_at'              => Carbon::now(),
+            'password_reset_token'         => $resetToken,
+            'password_reset_token_expires_at' => Carbon::now()->addMinutes(15),
+        ]);
 
         return $this->success([
-            'email' => $user->email,
-            'reset_token' => $user->password_reset_token,
-        ], 'OTP verified successfully', 200);
+            'email'       => $user->email,
+            'reset_token' => $resetToken,
+        ], 'OTP verified successfully.', 200);
     }
 
-
+    /**
+     * Reset password using the token from verifyOtp.
+     * - If the user's email was already verified: auto-login and return JWT.
+     * - If email was NOT verified: just return success; user must login and then verify email.
+     */
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email'       => 'required|email',
-            'password'    => 'required|min:4|confirmed',
+            'password'    => 'required|string|min:6|confirmed',
             'reset_token' => 'required|string',
         ]);
 
         if ($validator->fails()) {
-            return $this->error($validator->errors(), 'Error in Validation', 422);
+            return $this->error($validator->errors(), $validator->errors()->first(), 422);
         }
 
         $user = User::where('email', $request->email)
@@ -230,58 +308,56 @@ class AuthController extends Controller
             ->first();
 
         if (!$user) {
-            return $this->error([], 'Invalid token or email.', 400);
+            return $this->error([], 'Invalid reset token or email.', 400);
         }
 
-        if ($user->password_reset_token_expires_at < Carbon::now()) {
-            return $this->error([], 'Token expired.', 400);
+        if (Carbon::now()->gt($user->password_reset_token_expires_at)) {
+            return $this->error([], 'Reset token has expired. Please request a new one.', 400);
         }
 
-        $user->password = bcrypt($request->password);
-
-
-
-        // Attempt login with email and password
-        $credentials = $request->only('email', 'password');
-        Auth::guard('api')->attempt($credentials);
-
-        $token = Auth::guard('api')->attempt($credentials);
-
-        // Format user data
-        $userData = [
-            'id'     => $user->id,
-            'token'  => $token,
-            'name'   => $user->name,
-            'email'  => $user->email,
-            'avatar' => asset($user->avatar == null ? 'user.png' : $user->avatar),
-        ];
-
-        // Invalidate token after use
-        $user->password_reset_token = null;
+        $user->password                        = $request->password;  // 'hashed' cast handles bcrypt
+        $user->password_reset_token            = null;
         $user->password_reset_token_expires_at = null;
         $user->save();
 
+        // Auto-login only if the email was already verified
+        if ($user->email_verified_at) {
+            $token = Auth::guard('api')->login($user);
+            $user->update(['last_login_at' => now()]);
 
+            return $this->success([
+                'id'       => $user->id,
+                'token'    => $token,
+                'name'     => $user->name,
+                'email'    => $user->email,
+                'username' => $user->username,
+                'role'     => $user->getRoleNames()->first(),
+                'status'   => $user->status,
+            ], 'Password reset successful.', 200);
+        }
 
-        return $this->success($userData, 'Login Successful', 200);
+        // Email not yet verified — user must login (which will trigger OTP re-send)
+        return $this->success([
+            'email' => $user->email,
+        ], 'Password reset successful. Please login to verify your email.', 200);
     }
 
+    // -----------------------------------------------------------------------
+    // FCM TOKENS
+    // -----------------------------------------------------------------------
 
     public function storeFcmToken(Request $request)
     {
-        // dd($request->all());
         $validator = Validator::make($request->all(), [
             'device_id' => 'required|string',
-            'token' => 'required|string',
+            'token'     => 'required|string',
         ]);
 
         if ($validator->fails()) {
-            return $this->error($validator->errors(), 'Error in Validation', 422);
+            return $this->error($validator->errors(), $validator->errors()->first(), 422);
         }
 
-        $user = Auth::guard('api')->user();
-
-        // Check if device exists
+        $user     = Auth::guard('api')->user();
         $existing = $user->fcmTokens()->where('device_id', $request->device_id)->first();
 
         if ($existing) {
@@ -289,16 +365,16 @@ class AuthController extends Controller
         } else {
             $user->fcmTokens()->create([
                 'device_id' => $request->device_id,
-                'token' => $request->token,
+                'token'     => $request->token,
             ]);
         }
 
-        $response = [
-            'device_id' => $user->fcmTokens()->where('device_id', $request->device_id)->first()->device_id,
-            'token' =>  $user->fcmTokens()->where('device_id', $request->device_id)->first()->token,
-        ];
+        $fcm = $user->fcmTokens()->where('device_id', $request->device_id)->first();
 
-        return $this->success($response, 'FCM token stored successfully', 200);
+        return $this->success([
+            'device_id' => $fcm->device_id,
+            'token'     => $fcm->token,
+        ], 'FCM token stored successfully.', 200);
     }
 
     public function deleteFcmToken(Request $request)
@@ -308,15 +384,17 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return $this->error($validator->errors(), 'Error in Validation', 422);
+            return $this->error($validator->errors(), $validator->errors()->first(), 422);
         }
 
-        $user = Auth::guard('api')->user();
+        Auth::guard('api')->user()->fcmTokens()->where('device_id', $request->device_id)->delete();
 
-        $user->fcmTokens()->where('device_id', $request->device_id)->delete();
-
-        return $this->success([], 'FCM token deleted successfully', 200);
+        return $this->success([], 'FCM token deleted successfully.', 200);
     }
+
+    // -----------------------------------------------------------------------
+    // DELETE ACCOUNT
+    // -----------------------------------------------------------------------
 
     public function deleteUser(Request $request)
     {
@@ -329,27 +407,34 @@ class AuthController extends Controller
             return $this->error($validator->errors(), $validator->errors()->first(), 422);
         }
 
-        // Match credentials
-        $credentials = $request->only('email', 'password');
-
-        if (! Auth::guard('api')->attempt($credentials)) {
-            return $this->error([], 'Invalid email or password', 401);
+        if (!Auth::guard('api')->attempt($request->only('email', 'password'))) {
+            return $this->error([], 'Invalid email or password.', 401);
         }
 
-        // Match password
-        if (! Hash::check($request->password, Auth::guard('api')->user()->password)) {
-            return $this->error([], 'Invalid email or password', 401);
-        }
-
-        // Update user
         $user = Auth::guard('api')->user();
-
-        if (!$user) {
-            return $this->error([], 'Unauthenticated', 401);
-        }
-
         $user->delete();
 
-        return $this->success([], 'User deleted successfully', 200);
+        return $this->success([], 'Account deleted successfully.', 200);
+    }
+
+    // -----------------------------------------------------------------------
+    // PRIVATE HELPERS
+    // -----------------------------------------------------------------------
+
+    /**
+     * Generate a 6-digit OTP with a 15-minute expiry and persist it on the user.
+     * Returns [$otp, $expiresAt].
+     */
+    private function generateOtp(User $user): array
+    {
+        $otp       = (string) rand(100000, 999999);
+        $expiresAt = Carbon::now()->addMinutes(15);
+
+        $user->update([
+            'otp'            => $otp,
+            'otp_expired_at' => $expiresAt,
+        ]);
+
+        return [$otp, $expiresAt];
     }
 }

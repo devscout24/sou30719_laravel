@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -13,31 +12,23 @@ class OtpSend extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
-
     public $otp;
+    public $mailSubject;
 
-    public function __construct($otp)
+    public function __construct($otp, $subject = 'Your Verification Code')
     {
-        $this->otp = $otp;
+        $this->otp         = $otp;
+        $this->mailSubject = $subject;
     }
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
             from: env('MAIL_FROM_ADDRESS'),
-            subject: 'OTP Send Successfully',
+            subject: $this->mailSubject,
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         return new Content(
@@ -48,11 +39,6 @@ class OtpSend extends Mailable
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
     public function attachments(): array
     {
         return [];
