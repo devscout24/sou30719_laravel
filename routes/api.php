@@ -6,7 +6,6 @@ use App\Http\Controllers\API\HelpCenterController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\PolicyController;
 use App\Http\Controllers\API\ProfileController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(AuthController::class)->group(function () {
@@ -24,15 +23,16 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('/reset-password', 'resetPassword');
 
     // Account management
-    Route::post('/user-delete', 'deleteUser');
     Route::post('/store-user-fcm-token', 'storeFcmToken');
     Route::post('/delete-user-fcm-token', 'deleteFcmToken');
+
 });
 
 Route::controller(ProfileController::class)->middleware('auth:api')->group(function () {
     Route::get('/user-profile', 'profile');
     Route::post('/update-user-profile', 'updateProfile');
     Route::post('/change-user-password', 'changePassword');
+    Route::post('/user-delete', 'deleteUser');
 });
 
 Route::middleware('auth:api')->controller(NotificationController::class)->group(function () {

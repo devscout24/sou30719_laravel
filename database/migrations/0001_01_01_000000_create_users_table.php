@@ -12,41 +12,74 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            // Primary key and unique username
             $table->id();
             $table->string('username', 50)->nullable()->unique();
-            // Default avatar set to 'user.png' for all users
             $table->string('avatar')->default('user.png');
             $table->string('name', 100)->nullable();
             $table->string('phone', 20)->nullable();
             $table->string('address', 255)->nullable();
-            // Email fields for verification and change requests
+
+            // Email
             $table->string('email', 100)->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('email_change_token')->nullable();
             $table->timestamp('email_change_token_expires_at')->nullable();
             $table->string('pending_email')->nullable();
-            // Location fields for geocoding
+
+            // Location — decimal for geo queries
             $table->string('location', 255)->nullable();
-            $table->string('longitude', 255)->nullable();
-            $table->string('latitude', 255)->nullable();
-            // Authentication fields
-            $table->string('password');
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
+
+            // Auth
+            $table->string('password')->nullable(); // nullable for Google users
+            $table->enum('login_provider', ['email', 'google'])->default('email');
+            $table->string('google_id')->nullable();
             $table->string('password_reset_token')->nullable();
             $table->timestamp('password_reset_token_expires_at')->nullable();
-            // OTP fields for two-factor authentication
+
+            // OTP
             $table->string('otp', 10)->nullable();
             $table->timestamp('otp_expired_at')->nullable();
             $table->timestamp('otp_verified_at')->nullable();
-            // Status fields for account management
+
+            // Profile
+            $table->boolean('profile_completed')->default(false);
+
+            // Status
             $table->enum('status', ['active', 'inactive', 'banned'])->default('active');
-            // Last login timestamp for user activity tracking
             $table->timestamp('last_login_at')->nullable();
-            // FCM token for push notifications
             $table->string('fcm_token', 255)->nullable();
-            // Soft deletes for user accounts
+
+            // Soft delete
             $table->softDeletes();
             $table->string('delete_reason', 255)->nullable();
+
+            $table->timestamps();
+        });
+
+        Schema::create('user_profiles', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete()->unique();
+
+            $table->string('full_name', 100)->nullable();
+            $table->text('bio')->nullable();
+
+            $table->enum('gender', ['male', 'female', 'other'])->nullable();
+            $table->date('dob')->nullable();
+
+            $table->string('country', 100)->nullable();
+            $table->string('city', 100)->nullable();
+
+            $table->timestamps();
+        });
+
+        Schema::create('user_settings', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete()->unique();
+
+            $table->string('language', 10)->default('en');
+            $table->boolean('push_notifications')->default(true);
 
             $table->timestamps();
         });
