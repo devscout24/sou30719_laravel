@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - mahi
+      - Mahi
 name: 🚀 Deploy website on push
 jobs:
   web-deploy:
