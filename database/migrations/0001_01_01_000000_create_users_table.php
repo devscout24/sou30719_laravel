@@ -49,9 +49,6 @@ return new class extends Migration
             $table->timestamp('otp_expired_at')->nullable();
             $table->timestamp('otp_verified_at')->nullable();
 
-            // Profile
-            $table->boolean('profile_completed')->default(false);
-
             // Status
             $table->enum('status', ['active', 'inactive', 'banned'])->default('active');
             $table->timestamp('last_login_at')->nullable();
