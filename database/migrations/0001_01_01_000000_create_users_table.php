@@ -26,6 +26,12 @@ return new class extends Migration
             $table->timestamp('email_change_token_expires_at')->nullable();
             $table->string('pending_email')->nullable();
 
+            // Profile Info
+            $table->date('dob')->nullable();
+            $table->enum('gender', ['male', 'female'])->nullable();
+            $table->string('country', 100)->nullable();
+            $table->boolean('profile_completed')->default(false);
+
             // Location — decimal for geo queries
             $table->string('location', 255)->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
