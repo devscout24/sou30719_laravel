@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
@@ -33,7 +34,7 @@ class AuthController extends Controller
     public function signup(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email'                 => 'required|email|max:255|unique:users,email',
+            'email'                 => ['required', 'email', 'max:255', Rule::unique('users', 'email')->whereNull('deleted_at')],
             'password'              => 'required|string|min:6|confirmed',
         ], [
             'email.required'        => 'Email is required.',
@@ -236,6 +237,12 @@ class AuthController extends Controller
 
         [$otp, $expiresAt] = $this->generateOtp($user);
 
+        // Clear any stale password reset token from a previous incomplete attempt
+        $user->update([
+            'password_reset_token'            => null,
+            'password_reset_token_expires_at' => null,
+        ]);
+
         Mail::to($user->email)->send(new OtpSend($otp, 'Password Reset Code'));
 
         return $this->success([
@@ -399,7 +406,6 @@ class AuthController extends Controller
     public function deleteUser(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email'    => 'required|email',
             'password' => 'required|string|min:6',
         ]);
 
@@ -407,12 +413,22 @@ class AuthController extends Controller
             return $this->error($validator->errors(), $validator->errors()->first(), 422);
         }
 
-        if (!Auth::guard('api')->attempt($request->only('email', 'password'))) {
-            return $this->error([], 'Invalid email or password.', 401);
+        $user = Auth::guard('api')->user();
+
+        if (!Hash::check($request->password, $user->password)) {
+            return $this->error([], 'Incorrect password.', 401);
         }
 
-        $user = Auth::guard('api')->user();
+        // Free up the unique email/username so the account is soft-deleted
+        // (preserved for history/relations) without blocking re-registration.
+        $user->update([
+            'email'    => "deleted_user_{$user->id}@deleted.local",
+            'username' => null,
+        ]);
+
         $user->delete();
+
+        JWTAuth::invalidate(JWTAuth::getToken());
 
         return $this->success([], 'Account deleted successfully.', 200);
     }
@@ -437,4 +453,83 @@ class AuthController extends Controller
 
         return [$otp, $expiresAt];
     }
+
+    /**
+     * Resend the email-verification OTP for a user who hasn't verified yet.
+     * Used by the "Resend OTP" button on the Verify Email (signup) screen.
+     */
+    public function resendOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors(), $validator->errors()->first(), 422);
+        }
+
+        $user = User::query()->where('email', $request->email)->first();
+
+        if (!$user) {
+            return $this->error([], 'No account found with this email address.', 404);
+        }
+
+        if ($user->email_verified_at) {
+            return $this->error([], 'This email is already verified. Please login.', 400);
+        }
+
+        [$otp, $expiresAt] = $this->generateOtp($user);
+
+        Mail::to($user->email)->send(new OtpSend($otp, 'Verify Your Email'));
+
+        return $this->success([
+            'email' => $user->email,
+        ], 'A new verification code has been sent to your email.', 200);
+    }
+
+    /**
+     * Complete profile setup after email verification.
+     * Sets: full name, DOB, gender, country, location (lat/lng).
+     * Marks profile_completed = true.
+     */
+    public function setupProfile(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name'      => 'required|string|max:100',
+            'dob'       => 'required|date|before:-18 years',
+            'gender'    => 'required|in:male,female',
+            'country'   => 'required|string|max:100',
+            'latitude'  => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+        ], [
+            'dob.before' => 'You must be at least 18 years old.',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors(), $validator->errors()->first(), 422);
+        }
+
+        $user = Auth::guard('api')->user();
+
+        $user->update([
+            'name'              => $request->name,
+            'dob'               => $request->dob,
+            'gender'            => $request->gender,
+            'country'           => $request->country,
+            'latitude'          => $request->latitude,
+            'longitude'         => $request->longitude,
+            'profile_completed' => true,
+        ]);
+
+        return $this->success([
+            'id'                => $user->id,
+            'name'              => $user->name,
+            'dob'               => $user->dob,
+            'gender'            => $user->gender,
+            'country'           => $user->country,
+            'profile_completed' => $user->profile_completed,
+        ], 'Profile setup completed successfully.', 200);
+    }
+
+
 }

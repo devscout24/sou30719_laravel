@@ -12,6 +12,7 @@ Route::controller(AuthController::class)->group(function () {
     // Registration & email verification
     Route::post('/user-signup', 'signup');
     Route::post('/verify-email', 'verifyEmail');
+    Route::post('/resend-otp', 'resendOtp');
 
     // Login & logout
     Route::post('/user-signin', 'signin');
@@ -25,7 +26,12 @@ Route::controller(AuthController::class)->group(function () {
     // Account management
     Route::post('/store-user-fcm-token', 'storeFcmToken');
     Route::post('/delete-user-fcm-token', 'deleteFcmToken');
+    Route::post('/delete-account', 'deleteUser');
+});
 
+// Authenticated routes (needs JWT)
+Route::middleware('auth:api')->controller(AuthController::class)->group(function () {
+    Route::post('/setup-profile', 'setupProfile');
 });
 
 Route::controller(ProfileController::class)->middleware('auth:api')->group(function () {
@@ -65,9 +71,3 @@ Route::controller(PolicyController::class)->middleware('auth:api')->group(functi
 Route::controller(DashboardController::class)->middleware('auth:api')->group(function () {
     Route::get('/dashboard-provider', 'dashboardProvider');
 });
-
-
-
-
-
-

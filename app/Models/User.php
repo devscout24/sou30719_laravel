@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Jetstream\HasProfilePhoto;
@@ -18,6 +19,7 @@ class User extends Authenticatable implements JWTSubject
     use HasFactory;
     use HasProfilePhoto;
     use Notifiable;
+    use SoftDeletes;
 
     protected $guarded = [
         'id',
@@ -43,6 +45,8 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'dob' => 'date',
+            'profile_completed' => 'boolean',
         ];
     }
 
