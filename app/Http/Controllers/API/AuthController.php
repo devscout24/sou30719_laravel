@@ -8,6 +8,7 @@ use App\Traits\ApiResponse;
 use App\Mail\OtpSend;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -66,7 +67,10 @@ class AuthController extends Controller
             'status'   => 'active',
         ]);
 
-        $user->assignRole('user');
+        $roleName = 'user';
+        $guardName = config('auth.defaults.guard', 'web');
+        Role::firstOrCreate(['name' => $roleName, 'guard_name' => $guardName]);
+        $user->assignRole($roleName);
 
         // Generate and send email-verification OTP
         [$otp, $expiresAt] = $this->generateOtp($user);
