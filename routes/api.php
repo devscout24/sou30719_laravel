@@ -6,6 +6,7 @@ use App\Http\Controllers\API\HelpCenterController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\PolicyController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\Api\UserProfileViewController;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(AuthController::class)->group(function () {
@@ -73,6 +74,17 @@ Route::controller(ProfileController::class)->middleware('auth:api')->group(funct
 
     // Matching Criteria
     Route::post('/update-matching-criteria', 'updateMatchingCriteria');
+});
+
+Route::controller(UserProfileViewController::class)->middleware('auth:api')->group(function () {
+    Route::get('/user/{id}/basic-info', 'basicInfo');
+    Route::get('/user/{id}/gallery', 'gallery');
+    Route::get('/user/{id}/identity-location', 'identityLocation');
+    Route::get('/user/{id}/visual-info', 'visualInfo');
+    Route::get('/user/{id}/appearance-lifestyle', 'appearanceLifestyle');
+    Route::get('/user/{id}/interests-personality', 'interestsPersonality');
+    Route::get('/user/{id}/matching-criteria', 'matchingCriteria');
+    Route::get('/user/{id}/knowledge-base', 'knowledgeBase');
 });
 
 
