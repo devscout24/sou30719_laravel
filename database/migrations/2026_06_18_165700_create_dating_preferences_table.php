@@ -24,11 +24,15 @@ return new class extends Migration
 
             $table->enum('relationship_goal', [
                 'casual',
-                'serious',
-                'friendship',
+                'long_term',
                 'marriage',
+                'friendship',
                 'not_sure'
             ])->nullable();
+
+            // Matching criteria
+            $table->string('deal_breakers')->nullable();
+            $table->text('partner_preferences')->nullable();
 
             $table->timestamps();
         });

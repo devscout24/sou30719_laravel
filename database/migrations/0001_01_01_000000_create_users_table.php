@@ -32,6 +32,14 @@ return new class extends Migration
             $table->string('country', 100)->nullable();
             $table->boolean('profile_completed')->default(false);
 
+            // Basic Info
+            $table->text('bio')->nullable();
+            $table->json('interests')->nullable(); // tags array
+
+            // NOTE: dating-specific identity, appearance, lifestyle, interests,
+            // personality, matching-criteria, and visual-info fields live on
+            // `dating_profiles` / `dating_preferences` — see those migrations.
+
             // Location — decimal for geo queries
             $table->string('location', 255)->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
@@ -57,32 +65,6 @@ return new class extends Migration
             // Soft delete
             $table->softDeletes();
             $table->string('delete_reason', 255)->nullable();
-
-            $table->timestamps();
-        });
-
-        Schema::create('user_profiles', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete()->unique();
-
-            $table->string('full_name', 100)->nullable();
-            $table->text('bio')->nullable();
-
-            $table->enum('gender', ['male', 'female', 'other'])->nullable();
-            $table->date('dob')->nullable();
-
-            $table->string('country', 100)->nullable();
-            $table->string('city', 100)->nullable();
-
-            $table->timestamps();
-        });
-
-        Schema::create('user_settings', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete()->unique();
-
-            $table->string('language', 10)->default('en');
-            $table->boolean('push_notifications')->default(true);
 
             $table->timestamps();
         });

@@ -49,7 +49,9 @@ class User extends Authenticatable implements JWTSubject
             'profile_completed' => 'boolean',
         ];
     }
-
+    protected $casts = [
+        'interests' => 'array',
+    ];
 
     // implement 2 methods for token get
     public function getJWTIdentifier()
@@ -65,5 +67,19 @@ class User extends Authenticatable implements JWTSubject
     public function fcmTokens()
     {
         return $this->hasMany(FcmToken::class);
+    }
+    public function galleryImages()
+    {
+        return $this->hasMany(UserGalleryImage::class)->orderBy('sort_order');
+    }
+
+    public function datingProfile()
+    {
+        return $this->hasOne(DatingProfile::class);
+    }
+
+    public function datingPreference()
+    {
+        return $this->hasOne(DatingPreference::class);
     }
 }

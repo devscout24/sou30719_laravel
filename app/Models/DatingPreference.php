@@ -14,6 +14,8 @@ class DatingPreference extends Model
         'max_age',
         'max_distance',
         'relationship_goal',
+        'deal_breakers',
+        'partner_preferences',
     ];
 
     protected $casts = [

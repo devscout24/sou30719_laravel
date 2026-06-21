@@ -34,12 +34,56 @@ Route::middleware('auth:api')->controller(AuthController::class)->group(function
     Route::post('/setup-profile', 'setupProfile');
 });
 
+// Profile & User Management
 Route::controller(ProfileController::class)->middleware('auth:api')->group(function () {
+    // Existing
     Route::get('/user-profile', 'profile');
     Route::post('/update-user-profile', 'updateProfile');
     Route::post('/change-user-password', 'changePassword');
     Route::post('/user-delete', 'deleteUser');
+
+    // Basic Info (extends existing profile/updateProfile — see note below)
+    Route::post('/update-basic-info', 'updateBasicInfo');
+
+    // Gallery
+    Route::get('/gallery', 'getGallery');
+    Route::post('/gallery/upload', 'uploadGalleryImage');
+    Route::delete('/gallery/{id}', 'deleteGalleryImage');
+
+    // Dating Preferences — top level toggle/sliders
+    Route::get('/dating-preferences', 'getDatingPreferences');
+    Route::post('/update-dating-preferences', 'updateDatingPreferences');
+
+    // Profile set-up
+    Route::post('/update-profile-setup', 'updateProfileSetup');
+
+    // Identity & Location
+    Route::post('/update-identity-location', 'updateIdentityLocation');
+
+    // Visual Info
+    Route::get('/visual-info', 'getVisualInfo');
+    Route::post('/update-visual-info', 'updateVisualInfo');
+    Route::post('/visual-info/upload-photo', 'uploadVisualInfoPhoto');
+
+    // Appearance & Lifestyle
+    Route::post('/update-appearance-lifestyle', 'updateAppearanceLifestyle');
+
+    // Interests & Personality
+    Route::post('/update-interests-personality', 'updateInterestsPersonality');
+
+    // Matching Criteria
+    Route::post('/update-matching-criteria', 'updateMatchingCriteria');
 });
+
+
+
+// ======================================================================
+// ======================================================================
+// ======================================================================
+
+
+
+
 
 Route::middleware('auth:api')->controller(NotificationController::class)->group(function () {
     Route::get('/notifications', 'notification');
