@@ -87,31 +87,22 @@ Route::controller(UserProfileViewController::class)->middleware('auth:api')->gro
     Route::get('/user/{id}/knowledge-base', 'knowledgeBase');
 });
 
-
-
-// ======================================================================
-// ======================================================================
-// ======================================================================
-
-
-
-
-
 Route::middleware('auth:api')->controller(NotificationController::class)->group(function () {
     Route::get('/notifications', 'notification');
-
     // Mark all read / unread
     Route::post('/notifications/mark-all-read', 'markAllRead');
     Route::post('/notifications/mark-all-unread', 'markAllUnread');
-
     // Delete all
     Route::post('/notifications/delete-all', 'deleteAll');
-
     // Single operations
     Route::post('/notifications/delete', 'deleteNotification');
     Route::post('/notifications/mark-read', 'markNotificationRead');
     Route::post('/notifications/mark-unread', 'markNotificationUnread');
 });
+
+// ======================================================================
+// ======================================================================
+// ======================================================================
 
 // Customer API Routes (trimmed)
 Route::controller(HelpCenterController::class)->middleware('auth:api')->group(function () {
@@ -123,7 +114,6 @@ Route::controller(PolicyController::class)->middleware('auth:api')->group(functi
 });
 
 // Provider API Routes
-
 Route::controller(DashboardController::class)->middleware('auth:api')->group(function () {
     Route::get('/dashboard-provider', 'dashboardProvider');
 });
