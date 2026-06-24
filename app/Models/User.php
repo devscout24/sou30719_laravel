@@ -82,4 +82,14 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasOne(DatingPreference::class);
     }
+
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    public function aiConversations()
+    {
+        return $this->hasMany(AiConversation::class);
+    }
 }

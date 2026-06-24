@@ -8,6 +8,7 @@ use Database\Seeders\UserSeeder;
 use Database\Seeders\CompanySettingsSeeder;
 use Database\Seeders\DynamicPageSeeder;
 use Database\Seeders\NotificationSeeder;
+use Database\Seeders\WorkspaceSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -19,6 +20,7 @@ class DatabaseSeeder extends Seeder
             NotificationSeeder::class,
             CompanySettingsSeeder::class,
             DynamicPageSeeder::class,
+            WorkspaceSeeder::class,
         ]);
 
 

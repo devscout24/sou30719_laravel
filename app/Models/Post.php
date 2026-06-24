@@ -13,6 +13,8 @@ class Post extends Model
 
     protected $fillable = [
         'user_id',
+        'workspace_id',
+        'topic',
         'type',
         'created_by',
         'title',
@@ -24,15 +26,17 @@ class Post extends Model
         'event_location',
         'visibility',
         'status',
+        'published_at',
     ];
 
     protected $casts = [
-        'price'      => 'decimal:2',
-        'event_date' => 'datetime',
-        'type'       => 'string',
-        'created_by' => 'string',
-        'visibility' => 'string',
-        'status'     => 'string',
+        'price'        => 'decimal:2',
+        'event_date'   => 'datetime',
+        'published_at' => 'datetime',
+        'type'         => 'string',
+        'created_by'   => 'string',
+        'visibility'   => 'string',
+        'status'       => 'string',
     ];
 
     // ─── Relationships ───────────────────────────────
@@ -65,6 +69,21 @@ class Post extends Model
     public function savedByUsers(): HasMany
     {
         return $this->hasMany(SavedPost::class);
+    }
+
+    public function shares(): HasMany
+    {
+        return $this->hasMany(PostShare::class);
+    }
+
+    public function aiConversation(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(AiConversation::class);
+    }
+
+    public function workspace(): BelongsTo
+    {
+        return $this->belongsTo(Workspace::class);
     }
 
     // ─── Helpers ─────────────────────────────────────
@@ -114,5 +133,10 @@ class Post extends Model
     public function scopeRegular($query)
     {
         return $query->where('type', 'regular');
+    }
+
+    public function scopeWorkspace($query, int $workspaceId)
+    {
+        return $query->where('workspace_id', $workspaceId);
     }
 }

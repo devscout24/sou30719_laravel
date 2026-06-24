@@ -5,8 +5,11 @@ use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\HelpCenterController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\PolicyController;
+use App\Http\Controllers\Api\ConversationController;
+use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\Api\UserProfileViewController;
+use App\Http\Controllers\Api\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(AuthController::class)->group(function () {
@@ -98,6 +101,27 @@ Route::middleware('auth:api')->controller(NotificationController::class)->group(
     Route::post('/notifications/delete', 'deleteNotification');
     Route::post('/notifications/mark-read', 'markNotificationRead');
     Route::post('/notifications/mark-unread', 'markNotificationUnread');
+});
+
+Route::middleware('auth:api')->controller(WorkspaceController::class)->group(function () {
+    Route::get('/workspaces', 'index');
+    Route::post('/workspaces', 'store')->middleware('admin');
+});
+
+Route::middleware('auth:api')->controller(ConversationController::class)->group(function () {
+    Route::post('/conversations', 'store');
+    Route::get('/conversations/{id}', 'show');
+    Route::post('/conversations/{id}/messages', 'message');
+});
+
+Route::middleware('auth:api')->controller(PostController::class)->group(function () {
+    // Feed & post details
+    Route::get('/posts/feed', 'feed');
+    Route::get('/posts/{id}', 'show');
+
+    // Engagement
+    Route::post('/posts/{id}/like', 'like');
+    Route::post('/posts/{id}/share', 'share');
 });
 
 // ======================================================================
