@@ -39,7 +39,7 @@ class WorkspaceConversationService
     {
         $conversation = AiConversation::create([
             'user_id' => $userId,
-            'status' => 'idle',
+            'status'  => 'idle',
         ]);
 
         if ($workspaceId) {
@@ -69,11 +69,11 @@ class WorkspaceConversationService
         $this->recordUserMessage($conversation, $text, $imagePaths);
 
         return match ($conversation->status) {
-            'idle' => $this->handleIdle($conversation, $text),
-            'collecting' => $this->handleCollecting($conversation, $text, $imagePaths),
-            'preview' => $this->handlePreview($conversation, $text),
+            'idle'                      => $this->handleIdle($conversation, $text),
+            'collecting'                => $this->handleCollecting($conversation, $text, $imagePaths),
+            'preview'                   => $this->handlePreview($conversation, $text),
             'awaiting_edit_instruction' => $this->handleEditInstruction($conversation, $text),
-            default => $this->reply($conversation, self::MSG_CONVERSATION_DONE),
+            default                     => $this->reply($conversation, self::MSG_CONVERSATION_DONE),
         };
     }
 
@@ -97,7 +97,7 @@ class WorkspaceConversationService
     protected function handleCollecting(AiConversation $conversation, ?string $text, array $imagePaths): array
     {
         $description = $conversation->description;
-        $images = $conversation->images ?? [];
+        $images      = $conversation->images ?? [];
 
         if (filled($text)) {
             $description = trim($text);
@@ -107,10 +107,17 @@ class WorkspaceConversationService
             $images = array_merge($images, $imagePaths);
         }
 
-        $conversation->update(['description' => $description, 'images' => $images]);
+        // Preserve the user's original wording as image_description before AI polishes it
+        $imageDescription = filled($text) ? trim($text) : $conversation->image_description;
+
+        $conversation->update([
+            'description'       => $description,
+            'image_description' => $imageDescription,
+            'images'            => $images,
+        ]);
 
         $hasDescription = $conversation->hasDescription();
-        $hasImages = $conversation->hasImages();
+        $hasImages      = $conversation->hasImages();
 
         if (!$hasDescription && !$hasImages) {
             return $this->reply($conversation, self::MSG_NEED_BOTH);
@@ -131,9 +138,11 @@ class WorkspaceConversationService
         }
 
         $conversation->update([
-            'topic' => $result['topic'],
-            'description' => $result['description'],
-            'status' => 'preview',
+            'topic'             => $result['topic'],
+            'description'       => $result['description'],
+            'short_description' => $result['short_description'],
+            'tags'              => $result['tags'],
+            'status'            => 'preview',
         ]);
 
         return $this->previewReply($conversation);
@@ -173,9 +182,11 @@ class WorkspaceConversationService
         }
 
         $conversation->update([
-            'topic' => $result['topic'],
-            'description' => $result['description'],
-            'status' => 'preview',
+            'topic'             => $result['topic'],
+            'description'       => $result['description'],
+            'short_description' => $result['short_description'],
+            'tags'              => $result['tags'],
+            'status'            => 'preview',
         ]);
 
         return $this->previewReply($conversation);
@@ -185,15 +196,19 @@ class WorkspaceConversationService
     {
         $post = DB::transaction(function () use ($conversation) {
             $post = Post::create([
-                'user_id' => $conversation->user_id,
-                'workspace_id' => $conversation->workspace_id,
-                'topic' => $conversation->topic,
-                'type' => 'regular',
-                'created_by' => 'ai',
-                'content' => $conversation->description,
-                'visibility' => 'public',
-                'status' => 'published',
-                'published_at' => now(),
+                'user_id'           => $conversation->user_id,
+                'workspace_id'      => $conversation->workspace_id,
+                'topic'             => $conversation->topic,
+                'type'              => 'regular',
+                // User created the post using AI assistance — it belongs to the user
+                'created_by'        => 'user',
+                'content'           => $conversation->description,
+                'short_description' => $conversation->short_description,
+                'image_description' => $conversation->image_description,
+                'tags'              => $conversation->tags ?? [],
+                'visibility'        => 'public',
+                'status'            => 'published',
+                'published_at'      => now(),
             ]);
 
             foreach (($conversation->images ?? []) as $index => $path) {
@@ -212,26 +227,29 @@ class WorkspaceConversationService
     {
         $conversationId = $conversation->id;
 
-        // Deleting the conversation cascades its ai_messages, so the closing
-        // reply is returned directly rather than persisted.
         $conversation->delete();
 
         return [
             'conversation_id' => $conversationId,
-            'message' => self::MSG_DRAFT_DELETED,
-            'preview' => null,
-            'pills' => null,
-            'status' => 'deleted',
+            'message'         => self::MSG_DRAFT_DELETED,
+            'preview'         => null,
+            'pills'           => null,
+            'status'          => 'deleted',
         ];
     }
 
     protected function previewReply(AiConversation $conversation): array
     {
         $payload = [
-            'type' => 'social_post',
-            'topic' => $conversation->topic,
-            'description' => $conversation->description,
-            'images' => array_map(fn (string $path) => ['path' => 'storage/' . $path], $conversation->images ?? []),
+            'type'              => 'social_post',
+            'topic'             => $conversation->topic,
+            'description'       => $conversation->description,
+            'short_description' => $conversation->short_description,
+            'tags'              => $conversation->tags ?? [],
+            'images'            => array_map(
+                fn (string $path) => ['path' => 'storage/' . $path],
+                $conversation->images ?? []
+            ),
         ];
 
         return $this->reply($conversation, $payload, pills: $this->previewPills());
@@ -246,7 +264,7 @@ class WorkspaceConversationService
     {
         return match ($workspace->slug) {
             'social_post' => self::MSG_SOCIAL_GUIDANCE,
-            default => self::MSG_UNDER_DEV,
+            default       => self::MSG_UNDER_DEV,
         };
     }
 
@@ -280,8 +298,8 @@ class WorkspaceConversationService
 
         AiMessage::create([
             'conversation_id' => $conversation->id,
-            'sender' => 'user',
-            'message' => $stored,
+            'sender'          => 'user',
+            'message'         => $stored,
         ]);
     }
 
@@ -292,16 +310,16 @@ class WorkspaceConversationService
     {
         AiMessage::create([
             'conversation_id' => $conversation->id,
-            'sender' => 'ai',
-            'message' => is_array($message) ? json_encode($message) : $message,
+            'sender'          => 'ai',
+            'message'         => is_array($message) ? json_encode($message) : $message,
         ]);
 
         return array_merge([
             'conversation_id' => $conversation->id,
-            'message' => is_array($message) ? null : $message,
-            'preview' => is_array($message) ? $message : null,
-            'pills' => $pills,
-            'status' => $conversation->status,
+            'message'         => is_array($message) ? null : $message,
+            'preview'         => is_array($message) ? $message : null,
+            'pills'           => $pills,
+            'status'          => $conversation->status,
         ], $extra);
     }
 }

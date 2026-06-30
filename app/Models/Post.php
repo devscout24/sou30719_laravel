@@ -19,6 +19,9 @@ class Post extends Model
         'created_by',
         'title',
         'content',
+        'short_description',
+        'image_description',
+        'tags',
         'price',
         'location',
         'category',
@@ -30,13 +33,14 @@ class Post extends Model
     ];
 
     protected $casts = [
-        'price'        => 'decimal:2',
-        'event_date'   => 'datetime',
-        'published_at' => 'datetime',
-        'type'         => 'string',
-        'created_by'   => 'string',
-        'visibility'   => 'string',
-        'status'       => 'string',
+        'price'             => 'decimal:2',
+        'event_date'        => 'datetime',
+        'published_at'      => 'datetime',
+        'tags'              => 'array',
+        'type'              => 'string',
+        'created_by'        => 'string',
+        'visibility'        => 'string',
+        'status'            => 'string',
     ];
 
     // ─── Relationships ───────────────────────────────

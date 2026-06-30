@@ -15,12 +15,16 @@ class AiConversation extends Model
         'status',
         'topic',
         'description',
+        'short_description',
+        'image_description',
+        'tags',
         'images',
     ];
 
     protected $casts = [
         'status' => 'string',
         'images' => 'array',
+        'tags'   => 'array',
     ];
 
     // ─── Relationships ───────────────────────────────
