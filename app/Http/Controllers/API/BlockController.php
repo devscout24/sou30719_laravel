@@ -5,11 +5,47 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\UserBlock;
 use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class BlockController extends Controller
 {
     use ApiResponse;
+
+    /**
+     * Paginated list of users the current user has blocked.
+     */
+    public function index(Request $request)
+    {
+        $userId = Auth::guard('api')->id();
+        $perPage = min(max((int) $request->query('per_page', 15), 1), 50);
+
+        $blocks = UserBlock::where('user_id', $userId)
+            ->with('blockedUser')
+            ->latest()
+            ->paginate($perPage);
+
+        $items = collect($blocks->items())
+            ->filter(fn ($b) => $b->blockedUser !== null)
+            ->map(fn ($b) => [
+                'id'           => $b->blockedUser->id,
+                'name'         => $b->blockedUser->name,
+                'username'     => $b->blockedUser->username,
+                'avatar'       => asset($b->blockedUser->avatar ?? 'user.png'),
+                'date_blocked' => $b->created_at,
+            ])
+            ->values();
+
+        return $this->success([
+            'blocked' => $items,
+            'pagination' => [
+                'current_page' => $blocks->currentPage(),
+                'per_page'     => $blocks->perPage(),
+                'total'        => $blocks->total(),
+                'last_page'    => $blocks->lastPage(),
+            ],
+        ], 'Blocked users fetched successfully');
+    }
 
     /**
      * Block a user. Blocks are one-directional; feed filtering covers both directions.

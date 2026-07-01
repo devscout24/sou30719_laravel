@@ -6,6 +6,7 @@ use App\Http\Controllers\API\BlockController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\FeedCategoryController;
 use App\Http\Controllers\API\FeedSearchController;
+use App\Http\Controllers\API\FriendController;
 use App\Http\Controllers\API\HelpCenterController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\PolicyController;
@@ -144,8 +145,31 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/feed/ai-search', 'search');
     });
 
+    // ── Friends: Connected & Curate ──────────────────────────────────────────
+    Route::controller(FriendController::class)->group(function () {
+        Route::get('/friends/connected', 'connected');
+        Route::get('/friends/{id}/curate', 'curate');
+
+        // ── Requests (sent / received) ───────────────────────────────────────
+        Route::get('/friends/requests/sent', 'sentRequests');
+        Route::get('/friends/requests/received', 'receivedRequests');
+        Route::post('/friends/requests/{id}', 'sendRequest');
+        Route::post('/friends/requests/{id}/accept', 'acceptRequest');
+        Route::post('/friends/requests/{id}/reject', 'rejectRequest');
+        Route::delete('/friends/requests/{id}', 'cancelRequest');
+
+        // ── Favourites ────────────────────────────────────────────────────────
+        Route::get('/friends/favorites', 'favorites');
+        Route::post('/friends/favorites/{id}', 'addFavorite');
+        Route::delete('/friends/favorites/{id}', 'removeFavorite');
+
+        // ── Search ────────────────────────────────────────────────────────────
+        Route::get('/friends/search', 'search');
+    });
+
     // ── Block / Unblock ───────────────────────────────────────────────────────
     Route::controller(BlockController::class)->group(function () {
+        Route::get('/friends/blocked', 'index');
         Route::post('/users/{id}/block', 'block');
         Route::delete('/users/{id}/block', 'unblock');
     });
@@ -162,10 +186,5 @@ Route::middleware('auth:api')->group(function () {
 
     Route::controller(PolicyController::class)->group(function () {
         Route::get('/get-policies-disclaimers', 'getDisclaimersPolicy');
-    });
-
-    // ── Provider Dashboard ────────────────────────────────────────────────────
-    Route::controller(DashboardController::class)->group(function () {
-        Route::get('/dashboard-provider', 'dashboardProvider');
     });
 });
