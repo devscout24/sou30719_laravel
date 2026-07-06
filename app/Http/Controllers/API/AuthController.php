@@ -79,6 +79,7 @@ class AuthController extends Controller
 
         return $this->success([
             'email' => $user->email,
+            'expires_at' => $expiresAt, // In Seconds since epoch
         ], 'Registration successful. Please check your email for the verification code.', 201);
     }
 
