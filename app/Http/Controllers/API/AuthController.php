@@ -55,7 +55,7 @@ class AuthController extends Controller
         $name     = ucfirst($prefix);
         $username = $prefix . rand(1000, 9999);
 
-        while (User::where('username', $username)->exists()) {
+        while (User::query()->where('username', $username)->exists()) {
             $username = $prefix . rand(1000, 9999);
         }
 
