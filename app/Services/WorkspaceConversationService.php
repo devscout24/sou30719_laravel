@@ -92,19 +92,61 @@ class WorkspaceConversationService
             return $this->reply($conversation, self::MSG_SELECT_PROMPT, pills: $this->activePrompts());
         }
 
-        $candidate = $this->classifier->classify($text, Workspace::active()->get());
+        $result = $this->classifier->interpret($text, Workspace::active()->get(), $this->recentHistory($conversation));
 
-        if (!$candidate) {
-            return $this->reply($conversation, self::MSG_CLARIFY_INTENT, pills: $this->activePrompts());
+        if (!$result['workspace']) {
+            return $this->reply($conversation, $result['reply'], pills: $this->activePrompts());
         }
 
-        $conversation->update(['workspace_id' => $candidate->id, 'status' => 'confirming_workspace']);
+        $conversation->update(['workspace_id' => $result['workspace']->id, 'status' => 'confirming_workspace']);
 
         return $this->reply(
             $conversation,
-            sprintf('It sounds like you want to: "%s" — is that right?', $candidate->prompt),
+            sprintf('It sounds like you want to: "%s" — is that right?', $result['workspace']->prompt),
             pills: $this->confirmationPills()
         );
+    }
+
+    /**
+     * Prior conversation turns as OpenAI-style role/content pairs, oldest first,
+     * excluding the current turn (already recorded and passed separately).
+     *
+     * @return array<int, array{role: string, content: string}>
+     */
+    protected function recentHistory(AiConversation $conversation, int $limit = 10): array
+    {
+        $messages = $conversation->messages()
+            ->orderByDesc('created_at')
+            ->limit($limit + 1)
+            ->get()
+            ->reverse()
+            ->values();
+
+        if ($messages->isNotEmpty()) {
+            $messages = $messages->slice(0, -1);
+        }
+
+        return $messages
+            ->map(fn (AiMessage $message) => [
+                'role'    => $message->sender === 'user' ? 'user' : 'assistant',
+                'content' => $this->extractChatText($message->message),
+            ])
+            ->filter(fn (array $entry) => $entry['content'] !== '')
+            ->values()
+            ->all();
+    }
+
+    protected function extractChatText(string $raw): string
+    {
+        $decoded = json_decode($raw, true);
+
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            // User turns with images are stored as {text, images}; AI preview payloads
+            // (topic/description/tags) aren't useful as chat context, so skip them.
+            return array_key_exists('text', $decoded) ? (string) ($decoded['text'] ?? '') : '';
+        }
+
+        return $raw;
     }
 
     protected function handleConfirmingWorkspace(AiConversation $conversation, ?string $text): array
