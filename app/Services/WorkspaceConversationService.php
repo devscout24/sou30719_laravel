@@ -8,6 +8,7 @@ use App\Models\AiMessage;
 use App\Models\Post;
 use App\Models\Workspace;
 use App\Services\AI\PostCuratorService;
+use App\Services\AI\ReplyIntentClassifierService;
 use App\Services\AI\WorkspaceIntentClassifierService;
 use Illuminate\Support\Facades\DB;
 
@@ -35,6 +36,7 @@ class WorkspaceConversationService
     public function __construct(
         protected PostCuratorService $curator,
         protected WorkspaceIntentClassifierService $classifier,
+        protected ReplyIntentClassifierService $replyClassifier,
     ) {
     }
 
@@ -107,9 +109,9 @@ class WorkspaceConversationService
 
     protected function handleConfirmingWorkspace(AiConversation $conversation, ?string $text): array
     {
-        $choice = mb_strtolower(trim((string) $text));
+        $decision = $this->replyClassifier->classifyConfirmation((string) $text);
 
-        if ($choice === mb_strtolower(self::PILL_CONFIRM_YES)) {
+        if ($decision === 'yes') {
             $workspace = Workspace::find($conversation->workspace_id);
 
             if (!$workspace) {
@@ -123,11 +125,11 @@ class WorkspaceConversationService
 
         $conversation->update(['workspace_id' => null, 'status' => 'idle']);
 
-        if ($choice === mb_strtolower(self::PILL_CONFIRM_NO)) {
+        if ($decision === 'no') {
             return $this->reply($conversation, self::MSG_CLARIFY_INTENT, pills: $this->activePrompts());
         }
 
-        // Anything else is treated as a fresh attempt to describe their intent.
+        // Unclear reply — treat it as a fresh attempt to describe their intent.
         return $this->handleIdle($conversation, $text);
     }
 
@@ -205,23 +207,21 @@ class WorkspaceConversationService
 
     protected function handlePreview(AiConversation $conversation, ?string $text): array
     {
-        $choice = mb_strtolower(trim((string) $text));
+        $action = $this->replyClassifier->classifyPreviewAction((string) $text);
 
-        if ($choice === mb_strtolower(self::PILL_APPROVE)) {
-            return $this->approve($conversation);
-        }
+        return match ($action) {
+            'approve' => $this->approve($conversation),
+            'edit'    => $this->beginEditInstruction($conversation),
+            'delete'  => $this->deleteDraft($conversation),
+            default   => $this->reply($conversation, self::MSG_CHOOSE_OPTION, pills: $this->previewPills()),
+        };
+    }
 
-        if ($choice === mb_strtolower(self::PILL_EDIT)) {
-            $conversation->update(['status' => 'awaiting_edit_instruction']);
+    protected function beginEditInstruction(AiConversation $conversation): array
+    {
+        $conversation->update(['status' => 'awaiting_edit_instruction']);
 
-            return $this->reply($conversation, self::MSG_ASK_EDIT_INSTRUCTION);
-        }
-
-        if ($choice === mb_strtolower(self::PILL_DELETE)) {
-            return $this->deleteDraft($conversation);
-        }
-
-        return $this->reply($conversation, self::MSG_CHOOSE_OPTION, pills: $this->previewPills());
+        return $this->reply($conversation, self::MSG_ASK_EDIT_INSTRUCTION);
     }
 
     protected function handleEditInstruction(AiConversation $conversation, ?string $text): array
