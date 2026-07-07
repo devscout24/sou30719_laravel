@@ -317,21 +317,23 @@ class WorkspaceConversationService
             return $post;
         });
 
-        return $this->reply($conversation, self::MSG_PUBLISHED, extra: ['post_id' => $post->id]);
+        return $this->reply($conversation, self::MSG_PUBLISHED, extra: ['post_id' => $post->id, 'post_slug' => $post->slug]);
     }
 
     protected function deleteDraft(AiConversation $conversation): array
     {
         $conversationId = $conversation->id;
+        $conversationSlug = $conversation->slug;
 
         $conversation->delete();
 
         return [
-            'conversation_id' => $conversationId,
-            'message'         => self::MSG_DRAFT_DELETED,
-            'preview'         => null,
-            'pills'           => null,
-            'status'          => 'deleted',
+            'conversation_id'   => $conversationId,
+            'conversation_slug' => $conversationSlug,
+            'message'           => self::MSG_DRAFT_DELETED,
+            'preview'           => null,
+            'pills'             => null,
+            'status'            => 'deleted',
         ];
     }
 
@@ -412,11 +414,12 @@ class WorkspaceConversationService
         ]);
 
         return array_merge([
-            'conversation_id' => $conversation->id,
-            'message'         => is_array($message) ? null : $message,
-            'preview'         => is_array($message) ? $message : null,
-            'pills'           => $pills,
-            'status'          => $conversation->status,
+            'conversation_id'   => $conversation->id,
+            'conversation_slug' => $conversation->slug,
+            'message'           => is_array($message) ? null : $message,
+            'preview'           => is_array($message) ? $message : null,
+            'pills'             => $pills,
+            'status'            => $conversation->status,
         ], $extra);
     }
 }

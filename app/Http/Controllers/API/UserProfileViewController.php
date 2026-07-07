@@ -15,18 +15,18 @@ class UserProfileViewController extends Controller
     /**
      * Shared resolver — finds the target user and blocks access if blocked/not found.
      */
-    private function resolveUser(int $id)
+    private function resolveUser(string $username)
     {
         $authUserId = Auth::guard('api')->id();
 
-        $user = User::query()->find($id);
+        $user = User::query()->where('username', $username)->first();
 
         if (!$user) {
             return null;
         }
 
         // Don't show profile if either side has blocked the other
-        if (\App\Models\UserBlock::isBlocked($authUserId, $id)) {
+        if (\App\Models\UserBlock::isBlocked($authUserId, $user->id)) {
             return null;
         }
 
@@ -37,9 +37,9 @@ class UserProfileViewController extends Controller
     // BASIC INFO TAB
     // ─────────────────────────────────────────────
 
-    public function basicInfo($id)
+    public function basicInfo($username)
     {
-        $user = $this->resolveUser($id);
+        $user = $this->resolveUser($username);
 
         if (!$user) {
             return $this->error([], 'Profile not found.', 404);
@@ -60,9 +60,9 @@ class UserProfileViewController extends Controller
     // GALLERY TAB
     // ─────────────────────────────────────────────
 
-    public function gallery($id)
+    public function gallery($username)
     {
-        $user = $this->resolveUser($id);
+        $user = $this->resolveUser($username);
 
         if (!$user) {
             return $this->error([], 'Profile not found.', 404);
@@ -82,9 +82,9 @@ class UserProfileViewController extends Controller
     // IDENTITY & LOCATION TAB
     // ─────────────────────────────────────────────
 
-    public function identityLocation($id)
+    public function identityLocation($username)
     {
-        $user = $this->resolveUser($id);
+        $user = $this->resolveUser($username);
 
         if (!$user) {
             return $this->error([], 'Profile not found.', 404);
@@ -109,9 +109,9 @@ class UserProfileViewController extends Controller
     // VISUAL INFO TAB
     // ─────────────────────────────────────────────
 
-    public function visualInfo($id)
+    public function visualInfo($username)
     {
-        $user = $this->resolveUser($id);
+        $user = $this->resolveUser($username);
 
         if (!$user) {
             return $this->error([], 'Profile not found.', 404);
@@ -134,9 +134,9 @@ class UserProfileViewController extends Controller
     // APPEARANCE & LIFESTYLE TAB
     // ─────────────────────────────────────────────
 
-    public function appearanceLifestyle($id)
+    public function appearanceLifestyle($username)
     {
-        $user = $this->resolveUser($id);
+        $user = $this->resolveUser($username);
 
         if (!$user) {
             return $this->error([], 'Profile not found.', 404);
@@ -157,9 +157,9 @@ class UserProfileViewController extends Controller
     // INTERESTS & PERSONALITY TAB
     // ─────────────────────────────────────────────
 
-    public function interestsPersonality($id)
+    public function interestsPersonality($username)
     {
-        $user = $this->resolveUser($id);
+        $user = $this->resolveUser($username);
 
         if (!$user) {
             return $this->error([], 'Profile not found.', 404);
@@ -179,9 +179,9 @@ class UserProfileViewController extends Controller
     // MATCHING CRITERIA TAB
     // ─────────────────────────────────────────────
 
-    public function matchingCriteria($id)
+    public function matchingCriteria($username)
     {
-        $user = $this->resolveUser($id);
+        $user = $this->resolveUser($username);
 
         if (!$user) {
             return $this->error([], 'Profile not found.', 404);
@@ -198,9 +198,9 @@ class UserProfileViewController extends Controller
     // KNOWLEDGE BASE TAB
     // ─────────────────────────────────────────────
 
-    public function knowledgeBase($id)
+    public function knowledgeBase($username)
     {
-        $user = $this->resolveUser($id);
+        $user = $this->resolveUser($username);
 
         if (!$user) {
             return $this->error([], 'Profile not found.', 404);

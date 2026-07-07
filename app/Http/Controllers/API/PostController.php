@@ -187,7 +187,7 @@ class PostController extends Controller
     /**
      * Single post details.
      */
-    public function show(int $id)
+    public function show(string $slug)
     {
         $userId = Auth::guard('api')->id();
 
@@ -195,7 +195,8 @@ class PostController extends Controller
             ->with(['user', 'images', 'workspace'])
             ->withCount(['likes', 'shares'])
             ->withExists(['likes as is_liked' => fn ($q) => $q->where('user_id', $userId)])
-            ->find($id);
+            ->where('slug', $slug)
+            ->first();
 
         if (!$post) {
             return $this->error([], 'Post not found', 404);
@@ -207,9 +208,9 @@ class PostController extends Controller
     /**
      * Toggle a like on a post.
      */
-    public function like(int $id)
+    public function like(string $slug)
     {
-        $post = Post::find($id);
+        $post = Post::where('slug', $slug)->first();
 
         if (!$post) {
             return $this->error([], 'Post not found', 404);
@@ -236,9 +237,9 @@ class PostController extends Controller
     /**
      * Record a share for a post and return a platform share link.
      */
-    public function share(SharePostRequest $request, int $id)
+    public function share(SharePostRequest $request, string $slug)
     {
-        $post = Post::find($id);
+        $post = Post::where('slug', $slug)->first();
 
         if (!$post) {
             return $this->error([], 'Post not found', 404);
@@ -253,7 +254,7 @@ class PostController extends Controller
             'platform' => $platform,
         ]);
 
-        $postUrl = url('/api/posts/' . $post->id);
+        $postUrl = url('/api/posts/' . $post->slug);
 
         $shareUrl = match ($platform) {
             'facebook'  => 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode($postUrl),
@@ -271,9 +272,9 @@ class PostController extends Controller
     /**
      * Report a post. A user may report the same post multiple times with different reasons.
      */
-    public function report(ReportPostRequest $request, int $id)
+    public function report(ReportPostRequest $request, string $slug)
     {
-        $post = Post::find($id);
+        $post = Post::where('slug', $slug)->first();
 
         if (!$post) {
             return $this->error([], 'Post not found', 404);
@@ -300,11 +301,11 @@ class PostController extends Controller
     /**
      * Delete the authenticated user's own post.
      */
-    public function destroy(int $id)
+    public function destroy(string $slug)
     {
         $userId = Auth::guard('api')->id();
 
-        $post = Post::where('id', $id)->where('user_id', $userId)->first();
+        $post = Post::where('slug', $slug)->where('user_id', $userId)->first();
 
         if (!$post) {
             return $this->error([], 'Post not found or you do not have permission to delete it', 404);

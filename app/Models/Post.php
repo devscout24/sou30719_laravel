@@ -6,12 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Post extends Model
 {
     use SoftDeletes;
 
     protected $fillable = [
+        'slug',
         'user_id',
         'workspace_id',
         'topic',
@@ -42,6 +44,26 @@ class Post extends Model
         'visibility'        => 'string',
         'status'            => 'string',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Post $post) {
+            if (blank($post->slug)) {
+                $post->slug = static::generateUniqueSlug($post->topic ?: $post->title ?: 'post');
+            }
+        });
+    }
+
+    protected static function generateUniqueSlug(string $base): string
+    {
+        $slug = Str::slug($base) ?: 'post';
+
+        do {
+            $candidate = $slug . '-' . Str::lower(Str::random(6));
+        } while (static::withTrashed()->where('slug', $candidate)->exists());
+
+        return $candidate;
+    }
 
     // ─── Relationships ───────────────────────────────
 

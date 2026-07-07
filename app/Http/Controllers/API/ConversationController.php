@@ -36,11 +36,11 @@ class ConversationController extends Controller
     /**
      * Fetch a conversation with its full message history.
      */
-    public function show(int $id)
+    public function show(string $slug)
     {
         $userId = Auth::guard('api')->id();
 
-        $conversation = AiConversation::where('id', $id)->where('user_id', $userId)->with('messages')->first();
+        $conversation = AiConversation::where('slug', $slug)->where('user_id', $userId)->with('messages')->first();
 
         if (!$conversation) {
             return $this->error([], 'Conversation not found', 404);
@@ -48,6 +48,7 @@ class ConversationController extends Controller
 
         return $this->success([
             'id' => $conversation->id,
+            'slug' => $conversation->slug,
             'workspace_id' => $conversation->workspace_id,
             'status' => $conversation->status,
             'messages' => $conversation->messages->map(fn ($message) => [
@@ -61,11 +62,11 @@ class ConversationController extends Controller
     /**
      * Send a chat message (text and/or images) and advance the conversation.
      */
-    public function message(SendMessageRequest $request, int $id)
+    public function message(SendMessageRequest $request, string $slug)
     {
         $userId = Auth::guard('api')->id();
 
-        $conversation = AiConversation::where('id', $id)->where('user_id', $userId)->first();
+        $conversation = AiConversation::where('slug', $slug)->where('user_id', $userId)->first();
 
         if (!$conversation) {
             return $this->error([], 'Conversation not found', 404);

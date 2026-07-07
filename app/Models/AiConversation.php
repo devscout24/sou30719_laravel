@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class AiConversation extends Model
 {
     protected $fillable = [
+        'slug',
         'user_id',
         'workspace_id',
         'post_id',
@@ -26,6 +28,24 @@ class AiConversation extends Model
         'images' => 'array',
         'tags'   => 'array',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (AiConversation $conversation) {
+            if (blank($conversation->slug)) {
+                $conversation->slug = static::generateUniqueSlug();
+            }
+        });
+    }
+
+    protected static function generateUniqueSlug(): string
+    {
+        do {
+            $candidate = Str::lower(Str::random(10));
+        } while (static::where('slug', $candidate)->exists());
+
+        return $candidate;
+    }
 
     // ─── Relationships ───────────────────────────────
 

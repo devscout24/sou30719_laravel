@@ -45,17 +45,17 @@ class FriendController extends Controller
     // CURATE — a friend's own friends list
     // ─────────────────────────────────────────────
 
-    public function curate(int $id, Request $request)
+    public function curate(string $username, Request $request)
     {
         $authId = Auth::guard('api')->id();
 
-        $target = User::find($id);
+        $target = User::where('username', $username)->first();
 
         if (!$target) {
             return $this->error([], 'User not found', 404);
         }
 
-        if (UserBlock::isBlocked($authId, $id)) {
+        if (UserBlock::isBlocked($authId, $target->id)) {
             return $this->error([], 'This user is unavailable', 403);
         }
 
@@ -63,7 +63,7 @@ class FriendController extends Controller
 
         $blockedIds = $this->blockedIds($authId);
 
-        $friends = $this->friendsOf($id, $search)
+        $friends = $this->friendsOf($target->id, $search)
             ->filter(fn ($u) => $u->id !== $authId && !in_array($u->id, $blockedIds))
             ->values();
 

@@ -79,14 +79,14 @@ Route::middleware('auth:api')->group(function () {
 
     // ── User Profile View (other users) ──────────────────────────────────────
     Route::controller(UserProfileViewController::class)->group(function () {
-        Route::get('/user/{id}/basic-info', 'basicInfo');
-        Route::get('/user/{id}/gallery', 'gallery');
-        Route::get('/user/{id}/identity-location', 'identityLocation');
-        Route::get('/user/{id}/visual-info', 'visualInfo');
-        Route::get('/user/{id}/appearance-lifestyle', 'appearanceLifestyle');
-        Route::get('/user/{id}/interests-personality', 'interestsPersonality');
-        Route::get('/user/{id}/matching-criteria', 'matchingCriteria');
-        Route::get('/user/{id}/knowledge-base', 'knowledgeBase');
+        Route::get('/user/{username}/basic-info', 'basicInfo');
+        Route::get('/user/{username}/gallery', 'gallery');
+        Route::get('/user/{username}/identity-location', 'identityLocation');
+        Route::get('/user/{username}/visual-info', 'visualInfo');
+        Route::get('/user/{username}/appearance-lifestyle', 'appearanceLifestyle');
+        Route::get('/user/{username}/interests-personality', 'interestsPersonality');
+        Route::get('/user/{username}/matching-criteria', 'matchingCriteria');
+        Route::get('/user/{username}/knowledge-base', 'knowledgeBase');
     });
 
     // ── Notifications ─────────────────────────────────────────────────────────
@@ -109,8 +109,8 @@ Route::middleware('auth:api')->group(function () {
     // ── AI Conversations ──────────────────────────────────────────────────────
     Route::controller(ConversationController::class)->group(function () {
         Route::post('/conversations', 'store');
-        Route::get('/conversations/{id}', 'show');
-        Route::post('/conversations/{id}/messages', 'message');
+        Route::get('/conversations/{slug}', 'show');
+        Route::post('/conversations/{slug}/messages', 'message');
     });
 
     // ── Feed & Posts ──────────────────────────────────────────────────────────
@@ -119,13 +119,13 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/feed', 'feed');
 
         // Post CRUD
-        Route::get('/posts/{id}', 'show');
-        Route::delete('/posts/{id}', 'destroy');
+        Route::get('/posts/{slug}', 'show');
+        Route::delete('/posts/{slug}', 'destroy');
 
         // Engagement
-        Route::post('/posts/{id}/like', 'like');
-        Route::post('/posts/{id}/share', 'share');
-        Route::post('/posts/{id}/report', 'report');
+        Route::post('/posts/{slug}/like', 'like');
+        Route::post('/posts/{slug}/share', 'share');
+        Route::post('/posts/{slug}/report', 'report');
     });
 
     // ── Feed Categories (fixed tabs) ──────────────────────────────────────────
@@ -148,7 +148,7 @@ Route::middleware('auth:api')->group(function () {
     // ── Friends: Connected & Curate ──────────────────────────────────────────
     Route::controller(FriendController::class)->group(function () {
         Route::get('/friends/connected', 'connected');
-        Route::get('/friends/{id}/curate', 'curate');
+        Route::get('/friends/{username}/curate', 'curate');
 
         // ── Requests (sent / received) ───────────────────────────────────────
         Route::get('/friends/requests/sent', 'sentRequests');
