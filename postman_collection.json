@@ -5266,7 +5266,7 @@
                                 "conversations"
                             ]
                         },
-                        "description": "Start a new AI conversation. workspace_id is optional."
+                        "description": "Start a new AI conversation. workspace_id is optional. Returns only the conversation_id and slug — call GET Conversation Details next to load the full state."
                     },
                     "response": [
                         {
@@ -5319,7 +5319,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"Conversation started\",\n    \"data\": {\n        \"conversation_id\": 7,\n        \"conversation_slug\": \"conv-7-k3n9pq\",\n        \"message\": \"Select one of the optional prompts below\",\n        \"preview\": null,\n        \"pills\": [\n            \"I want to create a Post\",\n            \"I want to create an Advertisement banner\",\n            \"I want to create a Profile for dating\",\n            \"I want to curate a feed on specific topic\"\n        ],\n        \"status\": \"idle\"\n    },\n    \"code\": 200\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Conversation created successfully\",\n    \"data\": {\n        \"conversation_id\": 7,\n        \"slug\": \"conv-7-k3n9pq\"\n    },\n    \"code\": 200\n}"
                         },
                         {
                             "name": "Validation Error - Invalid Workspace",
@@ -5439,7 +5439,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"Conversation fetched successfully\",\n    \"data\": {\n        \"id\": 7,\n        \"slug\": \"conv-7-k3n9pq\",\n        \"workspace_id\": 1,\n        \"status\": \"collecting\",\n        \"messages\": [\n            {\n                \"sender\": \"user\",\n                \"message\": \"I want to create a Post\",\n                \"created_at\": \"2026-07-07T09:00:00.000000Z\"\n            },\n            {\n                \"sender\": \"ai\",\n                \"message\": \"Share your thoughts and experiences inside the chat interface and attach image(s) to proceed.\",\n                \"created_at\": \"2026-07-07T09:00:01.000000Z\"\n            }\n        ]\n    },\n    \"code\": 200\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Conversation details\",\n    \"data\": {\n        \"id\": 7,\n        \"slug\": \"conv-7-k3n9pq\",\n        \"workspace_id\": 1,\n        \"workspace\": {\n            \"id\": 1,\n            \"title\": \"Social Post\",\n            \"slug\": \"social_post\"\n        },\n        \"status\": \"preview\",\n        \"created_at\": \"2026-07-07T09:00:00.000000Z\",\n        \"updated_at\": \"2026-07-07T09:00:05.000000Z\",\n        \"messages\": [\n            {\n                \"id\": 1,\n                \"type\": \"message\",\n                \"sender\": \"user\",\n                \"content\": \"I want to create a Post\",\n                \"attachments\": null,\n                \"created_at\": \"2026-07-07T09:00:00.000000Z\"\n            },\n            {\n                \"id\": 2,\n                \"type\": \"message\",\n                \"sender\": \"ai\",\n                \"content\": \"Share your thoughts and experiences inside the chat interface and attach image(s) to proceed.\",\n                \"attachments\": null,\n                \"created_at\": \"2026-07-07T09:00:01.000000Z\"\n            },\n            {\n                \"id\": 3,\n                \"type\": \"message\",\n                \"sender\": \"user\",\n                \"content\": \"A walk among the trees this morning, feeling refreshed!\",\n                \"attachments\": [\n                    \"uploads/conversations/img1.jpg\"\n                ],\n                \"created_at\": \"2026-07-07T09:00:04.000000Z\"\n            },\n            {\n                \"id\": 4,\n                \"type\": \"post\",\n                \"sender\": \"ai\",\n                \"content\": {\n                    \"topic\": \"A walk among the trees\",\n                    \"description\": \"Spent the morning walking through the pine forest near the lake.\",\n                    \"short_description\": \"A peaceful morning walk through the pine forest.\",\n                    \"tags\": [\n                        \"nature\",\n                        \"trees\",\n                        \"wellness\"\n                    ],\n                    \"images\": [\n                        {\n                            \"path\": \"storage/uploads/conversations/img1.jpg\"\n                        }\n                    ]\n                },\n                \"attachments\": null,\n                \"created_at\": \"2026-07-07T09:00:05.000000Z\"\n            },\n            {\n                \"id\": 5,\n                \"type\": \"pills\",\n                \"sender\": \"ai\",\n                \"content\": [\n                    \"Approve posting to the feed\",\n                    \"Edit post\",\n                    \"Delete post\"\n                ],\n                \"attachments\": null,\n                \"created_at\": \"2026-07-07T09:00:05.000000Z\"\n            }\n        ]\n    },\n    \"code\": 200\n}"
                         },
                         {
                             "name": "Conversation Not Found",
@@ -5523,11 +5523,11 @@
                                 "messages"
                             ]
                         },
-                        "description": "Send a text message and/or upload one or more images to an existing conversation."
+                        "description": "Send a text message and/or upload one or more images to an existing conversation. Returns only a success status — call GET Conversation Details next to get the updated state."
                     },
                     "response": [
                         {
-                            "name": "Success - Moved to Preview",
+                            "name": "Success",
                             "originalRequest": {
                                 "auth": {
                                     "type": "bearer",
@@ -5579,7 +5579,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"Message processed\",\n    \"data\": {\n        \"conversation_id\": 7,\n        \"conversation_slug\": \"conv-7-k3n9pq\",\n        \"message\": null,\n        \"preview\": {\n            \"type\": \"social_post\",\n            \"topic\": \"A walk among the trees\",\n            \"description\": \"Spent the morning walking through the pine forest near the lake.\",\n            \"short_description\": \"A peaceful morning walk through the pine forest.\",\n            \"tags\": [\n                \"nature\",\n                \"trees\",\n                \"wellness\"\n            ],\n            \"images\": [\n                {\n                    \"path\": \"storage/uploads/conversations/img1.jpg\"\n                }\n            ]\n        },\n        \"pills\": [\n            \"Approve posting to the feed\",\n            \"Edit post\",\n            \"Delete post\"\n        ],\n        \"status\": \"preview\"\n    },\n    \"code\": 200\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Message sent successfully\",\n    \"data\": [],\n    \"code\": 200\n}"
                         },
                         {
                             "name": "Conversation Not Found",

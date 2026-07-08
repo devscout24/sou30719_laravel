@@ -66,7 +66,7 @@ class AiConversation extends Model
 
     public function messages(): HasMany
     {
-        return $this->hasMany(AiMessage::class, 'conversation_id')->orderBy('created_at');
+        return $this->hasMany(AiMessage::class, 'conversation_id')->orderBy('created_at')->orderBy('id');
     }
 
     // ─── Helpers ─────────────────────────────────────

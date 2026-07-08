@@ -408,7 +408,8 @@ class WorkspaceConversationService
     protected function recentHistory(AiConversation $conversation, int $limit = 10): array
     {
         $messages = $conversation->messages()
-            ->orderByDesc('created_at')
+            ->reorder('created_at', 'desc')
+            ->orderBy('id', 'desc')
             ->limit($limit + 1)
             ->get()
             ->reverse()
