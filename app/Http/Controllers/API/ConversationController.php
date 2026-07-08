@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Conversation\SendMessageRequest;
 use App\Http\Requests\Conversation\StartConversationRequest;
+use App\Http\Resources\ConversationDetailResource;
 use App\Models\AiConversation;
 use App\Services\PostImageUploadService;
 use App\Services\WorkspaceConversationService;
@@ -23,6 +24,9 @@ class ConversationController extends Controller
 
     /**
      * Start a new AI workspace conversation, optionally pre-selecting a workspace.
+     *
+     * Returns only the conversation ID and slug.
+     * The frontend should immediately call the Details endpoint to load the full state.
      */
     public function store(StartConversationRequest $request)
     {
@@ -30,37 +34,42 @@ class ConversationController extends Controller
 
         $result = $this->conversations->startConversation($userId, $request->validated()['workspace_id'] ?? null);
 
-        return $this->success($result, 'Conversation started');
+        return $this->success([
+            'conversation_id' => $result['conversation_id'],
+            'slug'            => $result['slug'],
+        ], 'Conversation created successfully');
     }
 
     /**
      * Fetch a conversation with its full message history.
+     *
+     * This is the **single source of truth** for all conversation state.
+     * Every piece of conversation-related information is returned here.
      */
     public function show(string $slug)
     {
         $userId = Auth::guard('api')->id();
 
-        $conversation = AiConversation::where('slug', $slug)->where('user_id', $userId)->with('messages')->first();
+        $conversation = AiConversation::where('slug', $slug)
+            ->where('user_id', $userId)
+            ->with(['messages', 'workspace', 'post'])
+            ->first();
 
         if (!$conversation) {
             return $this->error([], 'Conversation not found', 404);
         }
 
-        return $this->success([
-            'id' => $conversation->id,
-            'slug' => $conversation->slug,
-            'workspace_id' => $conversation->workspace_id,
-            'status' => $conversation->status,
-            'messages' => $conversation->messages->map(fn ($message) => [
-                'sender' => $message->sender,
-                'message' => $this->decodeMessage($message->message),
-                'created_at' => $message->created_at?->toISOString(),
-            ]),
-        ], 'Conversation fetched successfully');
+        return $this->success(
+            new ConversationDetailResource($conversation),
+            'Conversation details'
+        );
     }
 
     /**
      * Send a chat message (text and/or images) and advance the conversation.
+     *
+     * Returns only a success status. The frontend should immediately call
+     * the Details endpoint to get the updated conversation state.
      */
     public function message(SendMessageRequest $request, string $slug)
     {
@@ -76,15 +85,8 @@ class ConversationController extends Controller
             ? $this->uploader->storeMany($request->file('images'))
             : [];
 
-        $result = $this->conversations->handleMessage($conversation, $request->validated()['message'] ?? null, $imagePaths);
+        $this->conversations->handleMessage($conversation, $request->validated()['message'] ?? null, $imagePaths);
 
-        return $this->success($result, 'Message processed');
-    }
-
-    protected function decodeMessage(string $message): mixed
-    {
-        $decoded = json_decode($message, true);
-
-        return json_last_error() === JSON_ERROR_NONE ? $decoded : $message;
+        return $this->success([], 'Message sent successfully');
     }
 }

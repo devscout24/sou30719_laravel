@@ -40,8 +40,15 @@ class WorkspaceConversationService
     ) {
     }
 
+    // ─── Public API ──────────────────────────────────────────────────────────────
+
     /**
      * Start a new conversation, optionally pre-selecting a workspace (card click).
+     *
+     * Returns only the conversation ID and slug — no messages, pills, or previews.
+     * The frontend should call the Details endpoint to load the full state.
+     *
+     * @return array{conversation_id: int, slug: string}
      */
     public function startConversation(int $userId, ?int $workspaceId = null): array
     {
@@ -54,102 +61,85 @@ class WorkspaceConversationService
             $workspace = Workspace::active()->find($workspaceId);
 
             if ($workspace) {
-                return $this->assignWorkspace($conversation, $workspace);
+                $this->assignWorkspace($conversation, $workspace);
+
+                return [
+                    'conversation_id' => $conversation->id,
+                    'slug'            => $conversation->slug,
+                ];
             }
         }
 
-        return $this->reply($conversation, self::MSG_SELECT_PROMPT, pills: $this->activePrompts());
+        // No workspace pre-selected — store the initial prompt + pills
+        $this->storeReply($conversation, self::MSG_SELECT_PROMPT);
+        $this->storePills($conversation, $this->activePrompts());
+
+        return [
+            'conversation_id' => $conversation->id,
+            'slug'            => $conversation->slug,
+        ];
     }
 
     /**
      * Advance the conversation's state machine with an incoming chat message.
      *
+     * Returns only a success flag. The frontend should call the Details endpoint
+     * to get the updated conversation state.
+     *
      * @param  string[]  $imagePaths
+     * @return array{success: true}
      */
     public function handleMessage(AiConversation $conversation, ?string $text, array $imagePaths): array
     {
         $this->recordUserMessage($conversation, $text, $imagePaths);
 
-        return match ($conversation->status) {
+        match ($conversation->status) {
             'idle'                      => $this->handleIdle($conversation, $text),
             'confirming_workspace'      => $this->handleConfirmingWorkspace($conversation, $text),
             'collecting'                => $this->handleCollecting($conversation, $text, $imagePaths),
             'preview'                   => $this->handlePreview($conversation, $text),
             'awaiting_edit_instruction' => $this->handleEditInstruction($conversation, $text),
-            default                     => $this->reply($conversation, self::MSG_CONVERSATION_DONE),
+            default                     => $this->storeReply($conversation, self::MSG_CONVERSATION_DONE),
         };
+
+        return ['success' => true];
     }
 
-    protected function handleIdle(AiConversation $conversation, ?string $text): array
+    // ─── State Handlers (persistence only, no return payloads) ────────────────
+
+    protected function handleIdle(AiConversation $conversation, ?string $text): void
     {
         $workspace = $this->matchWorkspaceExact($text);
 
         if ($workspace) {
-            return $this->assignWorkspace($conversation, $workspace);
+            $this->assignWorkspace($conversation, $workspace);
+            return;
         }
 
         if (blank($text)) {
-            return $this->reply($conversation, self::MSG_SELECT_PROMPT, pills: $this->activePrompts());
+            $this->storeReply($conversation, self::MSG_SELECT_PROMPT);
+            $this->storePills($conversation, $this->activePrompts());
+            return;
         }
 
         $result = $this->classifier->interpret($text, Workspace::active()->get(), $this->recentHistory($conversation));
 
         if (!$result['workspace']) {
-            return $this->reply($conversation, $result['reply'], pills: $this->activePrompts());
+            $this->storeReply($conversation, $result['reply']);
+            $this->storePills($conversation, $this->activePrompts());
+            return;
         }
 
         $conversation->update(['workspace_id' => $result['workspace']->id, 'status' => 'confirming_workspace']);
 
-        return $this->reply(
+        $this->storeReply(
             $conversation,
-            sprintf('It sounds like you want to: "%s" — is that right?', $result['workspace']->prompt),
-            pills: $this->confirmationPills()
+            sprintf('It sounds like you want to: "%s" — is that right?', $result['workspace']->prompt)
         );
+        $this->storePills($conversation, $this->confirmationPills());
     }
 
-    /**
-     * Prior conversation turns as OpenAI-style role/content pairs, oldest first,
-     * excluding the current turn (already recorded and passed separately).
-     *
-     * @return array<int, array{role: string, content: string}>
-     */
-    protected function recentHistory(AiConversation $conversation, int $limit = 10): array
-    {
-        $messages = $conversation->messages()
-            ->orderByDesc('created_at')
-            ->limit($limit + 1)
-            ->get()
-            ->reverse()
-            ->values();
-
-        if ($messages->isNotEmpty()) {
-            $messages = $messages->slice(0, -1);
-        }
-
-        return $messages
-            ->map(fn (AiMessage $message) => [
-                'role'    => $message->sender === 'user' ? 'user' : 'assistant',
-                'content' => $this->extractChatText($message->message),
-            ])
-            ->filter(fn (array $entry) => $entry['content'] !== '')
-            ->values()
-            ->all();
-    }
-
-    protected function extractChatText(string $raw): string
-    {
-        $decoded = json_decode($raw, true);
-
-        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-            // User turns with images are stored as {text, images}; AI preview payloads
-            // (topic/description/tags) aren't useful as chat context, so skip them.
-            return array_key_exists('text', $decoded) ? (string) ($decoded['text'] ?? '') : '';
-        }
-
-        return $raw;
-    }
-
-    protected function handleConfirmingWorkspace(AiConversation $conversation, ?string $text): array
+    protected function handleConfirmingWorkspace(AiConversation $conversation, ?string $text): void
     {
         $decision = $this->replyClassifier->classifyConfirmation((string) $text);
 
@@ -158,42 +148,41 @@ class WorkspaceConversationService
 
             if (!$workspace) {
                 $conversation->update(['workspace_id' => null, 'status' => 'idle']);
-
-                return $this->reply($conversation, self::MSG_CLARIFY_INTENT, pills: $this->activePrompts());
+                $this->storeReply($conversation, self::MSG_CLARIFY_INTENT);
+                $this->storePills($conversation, $this->activePrompts());
+                return;
             }
 
-            return $this->assignWorkspace($conversation, $workspace);
+            $this->assignWorkspace($conversation, $workspace);
+            return;
         }
 
         $conversation->update(['workspace_id' => null, 'status' => 'idle']);
 
         if ($decision === 'no') {
-            return $this->reply($conversation, self::MSG_CLARIFY_INTENT, pills: $this->activePrompts());
+            $this->storeReply($conversation, self::MSG_CLARIFY_INTENT);
+            $this->storePills($conversation, $this->activePrompts());
+            return;
         }
 
         // Unclear reply — treat it as a fresh attempt to describe their intent.
-        return $this->handleIdle($conversation, $text);
+        $this->handleIdle($conversation, $text);
     }
 
-    protected function assignWorkspace(AiConversation $conversation, Workspace $workspace): array
+    protected function assignWorkspace(AiConversation $conversation, Workspace $workspace): void
     {
         if (!$workspace->is_supported) {
             $conversation->update(['workspace_id' => null, 'status' => 'idle']);
-
-            return $this->reply($conversation, self::MSG_UNDER_DEV, pills: $this->activePrompts());
+            $this->storeReply($conversation, self::MSG_UNDER_DEV);
+            $this->storePills($conversation, $this->activePrompts());
+            return;
         }
 
         $conversation->update(['workspace_id' => $workspace->id, 'status' => 'collecting']);
-
-        return $this->reply($conversation, $this->guidanceFor($workspace));
+        $this->storeReply($conversation, $this->guidanceFor($workspace));
     }
 
-    protected function confirmationPills(): array
-    {
-        return [self::PILL_CONFIRM_YES, self::PILL_CONFIRM_NO];
-    }
-
-    protected function handleCollecting(AiConversation $conversation, ?string $text, array $imagePaths): array
+    protected function handleCollecting(AiConversation $conversation, ?string $text, array $imagePaths): void
     {
         $description = $conversation->description;
         $images      = $conversation->images ?? [];
@@ -219,21 +208,25 @@ class WorkspaceConversationService
         $hasImages      = $conversation->hasImages();
 
         if (!$hasDescription && !$hasImages) {
-            return $this->reply($conversation, self::MSG_NEED_BOTH);
+            $this->storeReply($conversation, self::MSG_NEED_BOTH);
+            return;
         }
 
         if (!$hasDescription) {
-            return $this->reply($conversation, self::MSG_NEED_DESCRIPTION);
+            $this->storeReply($conversation, self::MSG_NEED_DESCRIPTION);
+            return;
         }
 
         if (!$hasImages) {
-            return $this->reply($conversation, self::MSG_NEED_IMAGES);
+            $this->storeReply($conversation, self::MSG_NEED_IMAGES);
+            return;
         }
 
         try {
             $result = $this->curator->curate($conversation->description, $conversation->images);
         } catch (AIServiceException $e) {
-            return $this->reply($conversation, $e->getMessage());
+            $this->storeReply($conversation, $e->getMessage());
+            return;
         }
 
         $conversation->update([
@@ -244,38 +237,43 @@ class WorkspaceConversationService
             'status'            => 'preview',
         ]);
 
-        return $this->previewReply($conversation);
+        $this->storePostPreview($conversation);
+        $this->storePills($conversation, $this->previewPills());
     }
 
-    protected function handlePreview(AiConversation $conversation, ?string $text): array
+    protected function handlePreview(AiConversation $conversation, ?string $text): void
     {
         $action = $this->replyClassifier->classifyPreviewAction((string) $text);
 
-        return match ($action) {
+        match ($action) {
             'approve' => $this->approve($conversation),
             'edit'    => $this->beginEditInstruction($conversation),
             'delete'  => $this->deleteDraft($conversation),
-            default   => $this->reply($conversation, self::MSG_CHOOSE_OPTION, pills: $this->previewPills()),
+            default   => (function () use ($conversation) {
+                $this->storeReply($conversation, self::MSG_CHOOSE_OPTION);
+                $this->storePills($conversation, $this->previewPills());
+            })(),
         };
     }
 
-    protected function beginEditInstruction(AiConversation $conversation): array
+    protected function beginEditInstruction(AiConversation $conversation): void
     {
         $conversation->update(['status' => 'awaiting_edit_instruction']);
-
-        return $this->reply($conversation, self::MSG_ASK_EDIT_INSTRUCTION);
+        $this->storeReply($conversation, self::MSG_ASK_EDIT_INSTRUCTION);
     }
 
-    protected function handleEditInstruction(AiConversation $conversation, ?string $text): array
+    protected function handleEditInstruction(AiConversation $conversation, ?string $text): void
     {
         if (blank($text)) {
-            return $this->reply($conversation, self::MSG_ASK_EDIT_INSTRUCTION);
+            $this->storeReply($conversation, self::MSG_ASK_EDIT_INSTRUCTION);
+            return;
         }
 
         try {
             $result = $this->curator->refine($conversation->topic, $conversation->description, $text);
         } catch (AIServiceException $e) {
-            return $this->reply($conversation, $e->getMessage());
+            $this->storeReply($conversation, $e->getMessage());
+            return;
         }
 
         $conversation->update([
@@ -286,10 +284,11 @@ class WorkspaceConversationService
             'status'            => 'preview',
         ]);
 
-        return $this->previewReply($conversation);
+        $this->storePostPreview($conversation);
+        $this->storePills($conversation, $this->previewPills());
     }
 
-    protected function approve(AiConversation $conversation): array
+    protected function approve(AiConversation $conversation): void
     {
         $post = DB::transaction(function () use ($conversation) {
             $post = Post::create([
@@ -317,30 +316,51 @@ class WorkspaceConversationService
             return $post;
         });
 
-        return $this->reply($conversation, self::MSG_PUBLISHED, extra: ['post_id' => $post->id, 'post_slug' => $post->slug]);
+        $this->storeReply($conversation, self::MSG_PUBLISHED);
     }
 
-    protected function deleteDraft(AiConversation $conversation): array
+    protected function deleteDraft(AiConversation $conversation): void
     {
-        $conversationId = $conversation->id;
-        $conversationSlug = $conversation->slug;
-
         $conversation->delete();
 
-        return [
-            'conversation_id'   => $conversationId,
-            'conversation_slug' => $conversationSlug,
-            'message'           => self::MSG_DRAFT_DELETED,
-            'preview'           => null,
-            'pills'             => null,
-            'status'            => 'deleted',
-        ];
+        // No messages to store — the conversation is deleted.
+        // The frontend will receive a success response and can redirect.
     }
 
-    protected function previewReply(AiConversation $conversation): array
+    // ─── Message Persistence ─────────────────────────────────────────────────
+
+    /**
+     * Store a plain text AI reply message.
+     */
+    protected function storeReply(AiConversation $conversation, string $message): AiMessage
+    {
+        return AiMessage::create([
+            'conversation_id' => $conversation->id,
+            'sender'          => 'ai',
+            'type'            => 'message',
+            'message'         => $message,
+        ]);
+    }
+
+    /**
+     * Store pills as a separate timeline entry so the frontend can render them distinctly.
+     */
+    protected function storePills(AiConversation $conversation, array $pills): AiMessage
+    {
+        return AiMessage::create([
+            'conversation_id' => $conversation->id,
+            'sender'          => 'ai',
+            'type'            => 'pills',
+            'message'         => json_encode($pills),
+        ]);
+    }
+
+    /**
+     * Store an AI-generated post preview card.
+     */
+    protected function storePostPreview(AiConversation $conversation): AiMessage
     {
         $payload = [
-            'type'              => 'social_post',
             'topic'             => $conversation->topic,
             'description'       => $conversation->description,
             'short_description' => $conversation->short_description,
@@ -351,7 +371,84 @@ class WorkspaceConversationService
             ),
         ];
 
-        return $this->reply($conversation, $payload, pills: $this->previewPills());
+        return AiMessage::create([
+            'conversation_id' => $conversation->id,
+            'sender'          => 'ai',
+            'type'            => 'post',
+            'message'         => json_encode($payload),
+        ]);
+    }
+
+    /**
+     * Record the user's incoming message (text and/or images).
+     */
+    protected function recordUserMessage(AiConversation $conversation, ?string $text, array $imagePaths): void
+    {
+        if (blank($text) && empty($imagePaths)) {
+            return;
+        }
+
+        AiMessage::create([
+            'conversation_id' => $conversation->id,
+            'sender'          => 'user',
+            'type'            => 'message',
+            'message'         => (string) ($text ?? ''),
+            'attachments'     => !empty($imagePaths) ? $imagePaths : null,
+        ]);
+    }
+
+    // ─── Conversation History (for AI context) ───────────────────────────────
+
+    /**
+     * Prior conversation turns as OpenAI-style role/content pairs, oldest first,
+     * excluding the current turn (already recorded and passed separately).
+     *
+     * @return array<int, array{role: string, content: string}>
+     */
+    protected function recentHistory(AiConversation $conversation, int $limit = 10): array
+    {
+        $messages = $conversation->messages()
+            ->orderByDesc('created_at')
+            ->limit($limit + 1)
+            ->get()
+            ->reverse()
+            ->values();
+
+        if ($messages->isNotEmpty()) {
+            $messages = $messages->slice(0, -1);
+        }
+
+        return $messages
+            ->filter(fn (AiMessage $message) => $message->type === 'message')
+            ->map(fn (AiMessage $message) => [
+                'role'    => $message->sender === 'user' ? 'user' : 'assistant',
+                'content' => $this->extractChatText($message),
+            ])
+            ->filter(fn (array $entry) => $entry['content'] !== '')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Extract plain chat text from a message for AI context.
+     */
+    protected function extractChatText(AiMessage $message): string
+    {
+        // For user messages, the text is stored directly in the message column now.
+        // For AI messages of type 'message', the raw string is the text.
+        // Skip non-message types (pills, post previews) — they aren't useful as chat context.
+        if ($message->type !== 'message') {
+            return '';
+        }
+
+        return (string) $message->message;
+    }
+
+    // ─── Pill Helpers ────────────────────────────────────────────────────────
+
+    protected function confirmationPills(): array
+    {
+        return [self::PILL_CONFIRM_YES, self::PILL_CONFIRM_NO];
     }
 
     protected function previewPills(): array
@@ -383,43 +480,5 @@ class WorkspaceConversationService
     protected function activePrompts(): array
     {
         return Workspace::active()->orderBy('sort_order')->pluck('prompt')->all();
-    }
-
-    protected function recordUserMessage(AiConversation $conversation, ?string $text, array $imagePaths): void
-    {
-        if (blank($text) && empty($imagePaths)) {
-            return;
-        }
-
-        $stored = !empty($imagePaths)
-            ? json_encode(['text' => $text, 'images' => $imagePaths])
-            : (string) $text;
-
-        AiMessage::create([
-            'conversation_id' => $conversation->id,
-            'sender'          => 'user',
-            'message'         => $stored,
-        ]);
-    }
-
-    /**
-     * @param  string|array<string, mixed>  $message
-     */
-    protected function reply(AiConversation $conversation, string|array $message, ?array $pills = null, array $extra = []): array
-    {
-        AiMessage::create([
-            'conversation_id' => $conversation->id,
-            'sender'          => 'ai',
-            'message'         => is_array($message) ? json_encode($message) : $message,
-        ]);
-
-        return array_merge([
-            'conversation_id'   => $conversation->id,
-            'conversation_slug' => $conversation->slug,
-            'message'           => is_array($message) ? null : $message,
-            'preview'           => is_array($message) ? $message : null,
-            'pills'             => $pills,
-            'status'            => $conversation->status,
-        ], $extra);
     }
 }
