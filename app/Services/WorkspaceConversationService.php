@@ -366,7 +366,7 @@ class WorkspaceConversationService
             'short_description' => $conversation->short_description,
             'tags'              => $conversation->tags ?? [],
             'images'            => array_map(
-                fn (string $path) => ['path' => 'storage/' . $path],
+                fn (string $path) => ['path' => $path],
                 $conversation->images ?? []
             ),
         ];
