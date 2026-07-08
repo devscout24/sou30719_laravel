@@ -38,7 +38,7 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            'root' => public_path('storage'),
             'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
             'throw' => false,
@@ -63,14 +63,13 @@ return [
     | Symbolic Links
     |--------------------------------------------------------------------------
     |
-    | Here you may configure the symbolic links that will be created when the
-    | `storage:link` Artisan command is executed. The array keys should be
-    | the locations of the links and the values should be their targets.
+    | The "public" disk now writes directly into public/storage (see above),
+    | so no symlink is needed. Left empty on purpose — do NOT re-add a link
+    | here for public/storage, `storage:link` would try to symlink over the
+    | real directory the "public" disk now writes into.
     |
     */
 
-    'links' => [
-        public_path('storage') => storage_path('app/public'),
-    ],
+    'links' => [],
 
 ];
