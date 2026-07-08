@@ -29,7 +29,7 @@ class AiMessageResource extends JsonResource
 
         if ($this->type === 'post' && is_array($content) && !empty($content['images'])) {
             $content['images'] = array_map(
-                fn (array $image) => ['path' => asset('storage/' . $image['path'])],
+                fn (array $image) => ['path' => $this->toUrl($image['path'])],
                 $content['images']
             );
         }
@@ -46,6 +46,23 @@ class AiMessageResource extends JsonResource
             return $this->attachments;
         }
 
-        return array_map(fn (string $path) => asset('storage/' . $path), $this->attachments);
+        return array_map(fn (string $path) => $this->toUrl($path), $this->attachments);
+    }
+
+    /**
+     * Build a full domain URL from a stored path, whether it's already a full
+     * URL, already prefixed with "storage/" (legacy rows), or a bare relative
+     * path — avoids double-prefixing like ".../storage/storage/...".
+     */
+    protected function toUrl(string $path): string
+    {
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        $path = ltrim($path, '/');
+        $path = preg_replace('#^storage/#', '', $path);
+
+        return asset('storage/' . $path);
     }
 }
