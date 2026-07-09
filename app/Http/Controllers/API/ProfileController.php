@@ -408,6 +408,28 @@ class ProfileController extends Controller
     // PROFILE SET-UP SUB-TAB
     // ─────────────────────────────────────────────
 
+    public function getProfileSetup()
+    {
+        $user = User::query()->where('id', Auth::guard('api')->id())->first();
+
+        if (!$user) {
+            return $this->error('User not found Or Invalid Token', 404);
+        }
+
+        $datingProfile = $user->datingProfile;
+
+        return $this->success([
+            'showcase_page' => optional($datingProfile)->showcase_page ?? false,
+            'nickname'      => optional($datingProfile)->nickname,
+            'country'       => optional($datingProfile)->dating_country,
+            'city'          => optional($datingProfile)->city,
+            'about'         => optional($datingProfile)->about,
+            'media'         => optional($datingProfile)->profile_setup_media
+                ? asset($datingProfile->profile_setup_media)
+                : null,
+        ], 'Profile setup fetched successfully', 200);
+    }
+
     public function updateProfileSetup(Request $request)
     {
         $user = User::query()->where('id', Auth::guard('api')->id())->first();
@@ -454,6 +476,31 @@ class ProfileController extends Controller
     // ─────────────────────────────────────────────
     // IDENTITY & LOCATION SUB-TAB
     // ─────────────────────────────────────────────
+
+    public function getIdentityLocation()
+    {
+        $user = User::query()->where('id', Auth::guard('api')->id())->first();
+
+        if (!$user) {
+            return $this->error('User not found Or Invalid Token', 404);
+        }
+
+        $datingProfile = $user->datingProfile;
+
+        return $this->success([
+            'nickname'            => optional($datingProfile)->dating_nickname,
+            'dob'                 => optional($datingProfile)->dating_dob?->format('Y-m-d'),
+            'full_name'           => optional($datingProfile)->dating_full_name,
+            'relationship_status' => optional($datingProfile)->relationship_status,
+            'gender'              => optional($datingProfile)->dating_gender,
+            'email'               => optional($datingProfile)->dating_email,
+            'location'            => optional($datingProfile)->dating_location,
+            'country'             => optional($datingProfile)->dating_country,
+            'address_1'           => optional($datingProfile)->address_1,
+            'address_2'           => optional($datingProfile)->address_2,
+            'connections_view'    => optional($datingProfile)->connections_view ?? false,
+        ], 'Identity & location fetched successfully', 200);
+    }
 
     public function updateIdentityLocation(Request $request)
     {
@@ -596,6 +643,28 @@ class ProfileController extends Controller
     // APPEARANCE & LIFESTYLE SUB-TAB
     // ─────────────────────────────────────────────
 
+    public function getAppearanceLifestyle()
+    {
+        $user = User::query()->where('id', Auth::guard('api')->id())->first();
+
+        if (!$user) {
+            return $this->error('User not found Or Invalid Token', 404);
+        }
+
+        $datingProfile = $user->datingProfile;
+
+        return $this->success([
+            'height'            => optional($datingProfile)->height,
+            'occupation'        => optional($datingProfile)->occupation,
+            'education'         => optional($datingProfile)->education,
+            'lifestyle_habits'  => optional($datingProfile)->lifestyle_habits,
+            'body_type'         => optional($datingProfile)->body_type,
+            'ethnicity'         => optional($datingProfile)->ethnicity,
+            'religious_beliefs' => optional($datingProfile)->religious_beliefs,
+            'languages'         => optional($datingProfile)->languages ?? [],
+        ], 'Appearance & lifestyle fetched successfully', 200);
+    }
+
     public function updateAppearanceLifestyle(Request $request)
     {
         $user = User::query()->where('id', Auth::guard('api')->id())->first();
@@ -648,6 +717,28 @@ class ProfileController extends Controller
     // ─────────────────────────────────────────────
     // INTERESTS & PERSONALITY SUB-TAB
     // ─────────────────────────────────────────────
+
+    public function getInterestsPersonality()
+    {
+        $user = User::query()->where('id', Auth::guard('api')->id())->first();
+
+        if (!$user) {
+            return $this->error('User not found Or Invalid Token', 404);
+        }
+
+        $datingProfile = $user->datingProfile;
+
+        return $this->success([
+            'hobbies'            => optional($datingProfile)->hobbies ?? [],
+            'personality_traits' => optional($datingProfile)->personality_traits ?? [],
+            'pet_preference'     => optional($datingProfile)->pet_preference,
+            'political_views'    => optional($datingProfile)->political_views,
+            'family_plans'       => optional($datingProfile)->family_plans,
+            'children_status'    => optional($datingProfile)->children_status,
+            'prompt_question'    => optional($datingProfile)->prompt_question,
+            'prompt_answer'      => optional($datingProfile)->prompt_answer,
+        ], 'Interests & personality fetched successfully', 200);
+    }
 
     public function updateInterestsPersonality(Request $request)
     {
@@ -704,6 +795,23 @@ class ProfileController extends Controller
     // ─────────────────────────────────────────────
     // MATCHING CRITERIA SUB-TAB
     // ─────────────────────────────────────────────
+
+    public function getMatchingCriteria()
+    {
+        $user = User::query()->where('id', Auth::guard('api')->id())->first();
+
+        if (!$user) {
+            return $this->error('User not found Or Invalid Token', 404);
+        }
+
+        $pref = $user->datingPreference;
+
+        return $this->success([
+            'relationship_goal'   => optional($pref)->relationship_goal,
+            'deal_breakers'       => optional($pref)->deal_breakers,
+            'partner_preferences' => optional($pref)->partner_preferences,
+        ], 'Matching criteria fetched successfully', 200);
+    }
 
     public function updateMatchingCriteria(Request $request)
     {

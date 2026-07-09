@@ -45,9 +45,11 @@ class UserProfileViewController extends Controller
             return $this->error([], 'Profile not found.', 404);
         }
 
+        $datingNickname = optional($user->datingProfile)->dating_nickname;
+
         return $this->success([
-            'name'      => $user->dating_nickname
-                ? "{$user->name} ({$user->dating_nickname})"
+            'name'      => $datingNickname
+                ? "{$user->name} ({$datingNickname})"
                 : $user->name,
             'avatar'    => asset($user->avatar ?? 'user.png'),
             'location'  => $user->location,
@@ -90,18 +92,20 @@ class UserProfileViewController extends Controller
             return $this->error([], 'Profile not found.', 404);
         }
 
+        $datingProfile = $user->datingProfile;
+
         // Respect the user's own "connections_view" visibility toggle
-        if (!$user->connections_view) {
+        if (!optional($datingProfile)->connections_view) {
             return $this->error([], 'This user has hidden their identity & location info.', 403);
         }
 
         return $this->success([
-            'nick_name'    => $user->dating_nickname,
-            'status'       => $user->relationship_status,
-            'dob'          => $user->dating_dob ? $user->dating_dob->format('F Y') : null,
-            'gender'       => $user->dating_gender,
-            'location'     => $user->dating_location,
-            'country'      => $user->dating_country,
+            'nick_name'    => $datingProfile->dating_nickname,
+            'status'       => $datingProfile->relationship_status,
+            'dob'          => $datingProfile->dating_dob ? $datingProfile->dating_dob->format('F Y') : null,
+            'gender'       => $datingProfile->dating_gender,
+            'location'     => $datingProfile->dating_location,
+            'country'      => $datingProfile->dating_country,
         ], 'Identity & location fetched successfully', 200);
     }
 
@@ -121,7 +125,7 @@ class UserProfileViewController extends Controller
             ? $user->datingProfile->images()->get()->map(fn($img) => [
                 'id'          => $img->id,
                 'url'         => $img->full_url,
-                'description' => $user->visual_description,
+                'description' => $user->datingProfile->visual_description,
             ])
             : [];
 
@@ -142,14 +146,16 @@ class UserProfileViewController extends Controller
             return $this->error([], 'Profile not found.', 404);
         }
 
+        $datingProfile = $user->datingProfile;
+
         return $this->success([
-            'height'             => $user->height,
-            'occupation'         => $user->occupation,
-            'lifestyle_habits'   => $user->lifestyle_habits,
-            'body_type'          => $user->body_type,
-            'ethnicity'          => $user->ethnicity,
-            'religious_beliefs'  => $user->religious_beliefs,
-            'languages'          => $user->languages ?? [],
+            'height'             => optional($datingProfile)->height,
+            'occupation'         => optional($datingProfile)->occupation,
+            'lifestyle_habits'   => optional($datingProfile)->lifestyle_habits,
+            'body_type'          => optional($datingProfile)->body_type,
+            'ethnicity'          => optional($datingProfile)->ethnicity,
+            'religious_beliefs'  => optional($datingProfile)->religious_beliefs,
+            'languages'          => optional($datingProfile)->languages ?? [],
         ], 'Appearance & lifestyle fetched successfully', 200);
     }
 
@@ -165,13 +171,15 @@ class UserProfileViewController extends Controller
             return $this->error([], 'Profile not found.', 404);
         }
 
+        $datingProfile = $user->datingProfile;
+
         return $this->success([
-            'hobbies'             => $user->hobbies ?? [],
-            'personality_traits'  => $user->personality_traits ?? [],
-            'pet_preference'      => $user->pet_preference,
-            'political_views'     => $user->political_views,
-            'family_plans'        => $user->family_plans,
-            'children_status'     => $user->children_status,
+            'hobbies'             => optional($datingProfile)->hobbies ?? [],
+            'personality_traits'  => optional($datingProfile)->personality_traits ?? [],
+            'pet_preference'      => optional($datingProfile)->pet_preference,
+            'political_views'     => optional($datingProfile)->political_views,
+            'family_plans'        => optional($datingProfile)->family_plans,
+            'children_status'     => optional($datingProfile)->children_status,
         ], 'Interests & personality fetched successfully', 200);
     }
 
@@ -187,10 +195,12 @@ class UserProfileViewController extends Controller
             return $this->error([], 'Profile not found.', 404);
         }
 
+        $pref = $user->datingPreference;
+
         return $this->success([
-            'relationship_goal'   => $user->relationship_goal,
-            'deal_breakers'       => $user->deal_breakers,
-            'partner_preferences' => $user->partner_preferences,
+            'relationship_goal'   => optional($pref)->relationship_goal,
+            'deal_breakers'       => optional($pref)->deal_breakers,
+            'partner_preferences' => optional($pref)->partner_preferences,
         ], 'Matching criteria fetched successfully', 200);
     }
 

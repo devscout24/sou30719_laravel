@@ -67,15 +67,23 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/dating-preferences', 'getDatingPreferences');
         Route::post('/update-dating-preferences', 'updateDatingPreferences');
 
+        Route::get('/profile-setup', 'getProfileSetup');
         Route::post('/update-profile-setup', 'updateProfileSetup');
+
+        Route::get('/identity-location', 'getIdentityLocation');
         Route::post('/update-identity-location', 'updateIdentityLocation');
 
         Route::get('/visual-info', 'getVisualInfo');
         Route::post('/update-visual-info', 'updateVisualInfo');
         Route::post('/visual-info/upload-photo', 'uploadVisualInfoPhoto');
 
+        Route::get('/appearance-lifestyle', 'getAppearanceLifestyle');
         Route::post('/update-appearance-lifestyle', 'updateAppearanceLifestyle');
+
+        Route::get('/interests-personality', 'getInterestsPersonality');
         Route::post('/update-interests-personality', 'updateInterestsPersonality');
+
+        Route::get('/matching-criteria', 'getMatchingCriteria');
         Route::post('/update-matching-criteria', 'updateMatchingCriteria');
     });
 
