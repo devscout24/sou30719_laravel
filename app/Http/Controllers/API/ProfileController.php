@@ -8,6 +8,8 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ProfileController extends Controller
@@ -29,6 +31,8 @@ class ProfileController extends Controller
             'address' => $user->address,
             'phone' => $user->phone,
             'location' => $user->location,
+            'latitude' => $user->latitude,
+            'longitude' => $user->longitude,
         ];
 
         return $this->success($profile_data, 'Profile Information', 200);
@@ -43,12 +47,14 @@ class ProfileController extends Controller
         }
 
         $validate = Validator::make($request->all(), [
-            'name'     => 'sometimes|string|max:255',
-            'email'    => 'sometimes|email|max:255|unique:users,email,' . $user->id,
-            'phone'    => 'sometimes|string|max:20',
-            'address'  => 'sometimes|string|max:500',
-            'location' => 'sometimes|string|max:255',
-            'avatar'   => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'name'      => 'sometimes|string|max:255',
+            'email'     => 'sometimes|email|max:255|unique:users,email,' . $user->id,
+            'phone'     => 'sometimes|string|max:20',
+            'address'   => 'sometimes|string|max:500',
+            'location'  => 'sometimes|string|max:255',
+            'latitude'  => 'sometimes|nullable|numeric|between:-90,90',
+            'longitude' => 'sometimes|nullable|numeric|between:-180,180',
+            'avatar'    => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         if ($validate->fails()) {
@@ -71,6 +77,17 @@ class ProfileController extends Controller
             if ($request->has('location')) {
                 $user->location = $request->location;
             }
+            if ($request->filled('latitude') && $request->filled('longitude')) {
+                $user->latitude = $request->latitude;
+                $user->longitude = $request->longitude;
+
+                if (!$request->has('location')) {
+                    $resolvedLocation = $this->reverseGeocode($request->latitude, $request->longitude);
+                    if ($resolvedLocation) {
+                        $user->location = $resolvedLocation;
+                    }
+                }
+            }
             if ($request->hasFile('avatar')) {
                 $oldImage = $user->avatar != 'user.png' ? $user->avatar : null;
                 $avatar = $this->uploadImage($request->file('avatar'), $oldImage, 'uploads/avatar', 300, 300, 'avatar_' . $user->id);
@@ -82,6 +99,45 @@ class ProfileController extends Controller
             return $this->success([], 'Profile updated successfully', 200);
         } catch (\Exception $e) {
             return $this->error('Failed to update profile: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Resolve a human-readable location string from coordinates via OpenStreetMap Nominatim.
+     * Returns null (instead of throwing) on any failure so profile updates never block on it.
+     */
+    private function reverseGeocode(float $latitude, float $longitude): ?string
+    {
+        try {
+            $response = Http::withHeaders([
+                'User-Agent' => config('app.name', 'Laravel') . ' (' . config('mail.from.address', 'contact@example.com') . ')',
+            ])
+                ->timeout(5)
+                ->get('https://nominatim.openstreetmap.org/reverse', [
+                    'format'         => 'jsonv2',
+                    'lat'            => $latitude,
+                    'lon'            => $longitude,
+                    'zoom'           => 10,
+                    'addressdetails' => 1,
+                ]);
+
+            if (!$response->successful()) {
+                return null;
+            }
+
+            $address = $response->json('address', []);
+            $city = $address['city'] ?? $address['town'] ?? $address['village'] ?? $address['county'] ?? null;
+            $country = $address['country'] ?? null;
+
+            if ($city && $country) {
+                return "{$city}, {$country}";
+            }
+
+            return $response->json('display_name');
+        } catch (\Exception $e) {
+            Log::warning('Reverse geocoding failed: ' . $e->getMessage());
+
+            return null;
         }
     }
 
@@ -147,6 +203,23 @@ class ProfileController extends Controller
     // ─────────────────────────────────────────────
     // BASIC INFO TAB
     // ─────────────────────────────────────────────
+
+    public function getBasicInfo()
+    {
+        $user = User::query()->where('id', Auth::guard('api')->id())->first();
+
+        if (!$user) {
+            return $this->error('User not found Or Invalid Token', 404);
+        }
+
+        return $this->success([
+            'name'      => $user->name,
+            'avatar'    => asset($user->avatar ?? 'user.png'),
+            'location'  => $user->location,
+            'bio'       => $user->bio,
+            'interests' => $user->interests ?? [],
+        ], 'Basic info fetched successfully', 200);
+    }
 
     public function updateBasicInfo(Request $request)
     {

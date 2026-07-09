@@ -56,6 +56,8 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/update-user-profile', 'updateProfile');
         Route::post('/change-user-password', 'changePassword');
         Route::post('/user-delete', 'deleteUser');
+
+        Route::get('/basic-info', 'getBasicInfo');
         Route::post('/update-basic-info', 'updateBasicInfo');
 
         Route::get('/gallery', 'getGallery');
@@ -104,6 +106,9 @@ Route::middleware('auth:api')->group(function () {
     Route::controller(WorkspaceController::class)->group(function () {
         Route::get('/workspaces', 'index');
         Route::post('/workspaces', 'store')->middleware('admin');
+        Route::get('/workspaces/{workspace}', 'show');
+        Route::post('/workspaces/{workspace}/nav-access', 'grantNavAccess')->middleware('admin');
+        Route::delete('/workspaces/{workspace}/nav-access', 'revokeNavAccess')->middleware('admin');
     });
 
     // ── AI Conversations ──────────────────────────────────────────────────────

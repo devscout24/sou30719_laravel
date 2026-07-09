@@ -22,6 +22,7 @@ class WorkspaceResource extends JsonResource
             'prompt' => $this->prompt,
             'is_supported' => $this->is_supported,
             'status' => $this->status,
+            'nav_access' => $this->navAccessMap(),
         ];
     }
 }
