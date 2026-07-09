@@ -1555,7 +1555,7 @@
                                         }
                                     ],
                                     "cookie": [],
-                                    "body": "{\n    \"status\": true,\n    \"message\": \"Profile Information\",\n    \"data\": {\n        \"name\": \"John Doe\",\n        \"email\": \"john@example.com\",\n        \"profile_photo\": \"http://localhost/user.png\",\n        \"address\": null,\n        \"phone\": null,\n        \"location\": \"Dhaka\"\n    },\n    \"code\": 200\n}"
+                                    "body": "{\n    \"status\": true,\n    \"message\": \"Profile Information\",\n    \"data\": {\n        \"name\": \"John Doe\",\n        \"email\": \"john@example.com\",\n        \"profile_photo\": \"http://localhost/user.png\",\n        \"address\": null,\n        \"phone\": null,\n        \"location\": \"Dhaka\",\n        \"latitude\": \"23.8103104\",\n        \"longitude\": \"90.4125181\"\n    },\n    \"code\": 200\n}"
                                 },
                                 {
                                     "name": "User Not Found (known bug: intended 404, actual HTTP 500)",
@@ -1640,6 +1640,16 @@
                                             "type": "text"
                                         },
                                         {
+                                            "key": "latitude",
+                                            "value": "23.8103",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "longitude",
+                                            "value": "90.4125",
+                                            "type": "text"
+                                        },
+                                        {
                                             "key": "avatar",
                                             "type": "file",
                                             "value": ""
@@ -1654,7 +1664,8 @@
                                     "path": [
                                         "update-user-profile"
                                     ]
-                                }
+                                },
+                                "description": "Updates the authenticated user's profile. If latitude and longitude are both provided and no explicit location is sent, the location field is auto-filled via reverse geocoding (OpenStreetMap Nominatim)."
                             },
                             "response": [
                                 {
@@ -1698,6 +1709,16 @@
                                                 {
                                                     "key": "location",
                                                     "value": "Bangladesh",
+                                                    "type": "text"
+                                                },
+                                                {
+                                                    "key": "latitude",
+                                                    "value": "23.8103",
+                                                    "type": "text"
+                                                },
+                                                {
+                                                    "key": "longitude",
+                                                    "value": "90.4125",
                                                     "type": "text"
                                                 },
                                                 {
@@ -1770,6 +1791,16 @@
                                                 {
                                                     "key": "location",
                                                     "value": "Bangladesh",
+                                                    "type": "text"
+                                                },
+                                                {
+                                                    "key": "latitude",
+                                                    "value": "23.8103",
+                                                    "type": "text"
+                                                },
+                                                {
+                                                    "key": "longitude",
+                                                    "value": "90.4125",
                                                     "type": "text"
                                                 },
                                                 {
@@ -2096,6 +2127,108 @@
                 {
                     "name": "Basic Info",
                     "item": [
+                        {
+                            "name": "GET Basic Info",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/basic-info",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "basic-info"
+                                    ]
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "Success",
+                                    "originalRequest": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{token}}",
+                                                    "type": "string"
+                                                }
+                                            ]
+                                        },
+                                        "method": "GET",
+                                        "header": [],
+                                        "url": {
+                                            "raw": "{{base_url}}/basic-info",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "basic-info"
+                                            ]
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"status\": true,\n    \"message\": \"Basic info fetched successfully\",\n    \"data\": {\n        \"name\": \"John Doe\",\n        \"avatar\": \"http://localhost/user.png\",\n        \"location\": \"Dhaka\",\n        \"bio\": \"About me...\",\n        \"interests\": [\n            \"Travel\",\n            \"Music\"\n        ]\n    },\n    \"code\": 200\n}"
+                                },
+                                {
+                                    "name": "Unauthenticated",
+                                    "originalRequest": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{token}}",
+                                                    "type": "string"
+                                                }
+                                            ]
+                                        },
+                                        "method": "GET",
+                                        "header": [],
+                                        "url": {
+                                            "raw": "{{base_url}}/basic-info",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "basic-info"
+                                            ]
+                                        }
+                                    },
+                                    "status": "Unauthorized",
+                                    "code": 401,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+                                }
+                            ]
+                        },
                         {
                             "name": "POST Update Basic Info",
                             "request": {
@@ -5034,7 +5167,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"Workspaces fetched successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"slug\": \"social_post\",\n            \"title\": \"Curated Social Media\",\n            \"description\": \"Share updates, connect with people, and stay part of what's happening.\",\n            \"prompt\": \"I want to create a Post\",\n            \"is_supported\": true,\n            \"status\": \"active\"\n        },\n        {\n            \"id\": 2,\n            \"slug\": \"ad_banner\",\n            \"title\": \"Advertisement Banner\",\n            \"description\": \"Create a promotional banner for your business.\",\n            \"prompt\": \"I want to create an Advertisement banner\",\n            \"is_supported\": false,\n            \"status\": \"active\"\n        }\n    ],\n    \"code\": 200\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Workspaces fetched successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"slug\": \"social_post\",\n            \"title\": \"Curated Social Media\",\n            \"description\": \"Share updates, connect with people, and stay part of what's happening.\",\n            \"prompt\": \"I want to create a Post\",\n            \"is_supported\": true,\n            \"status\": \"active\",\n            \"nav_access\": {\n                \"ai_pal\": true,\n                \"discovery\": true,\n                \"friends\": true,\n                \"chat\": true\n            }\n        },\n        {\n            \"id\": 2,\n            \"slug\": \"ad_banner\",\n            \"title\": \"Advertisement Banner\",\n            \"description\": \"Create a promotional banner for your business.\",\n            \"prompt\": \"I want to create an Advertisement banner\",\n            \"is_supported\": false,\n            \"status\": \"active\",\n            \"nav_access\": {\n                \"ai_pal\": true,\n                \"discovery\": true,\n                \"friends\": true,\n                \"chat\": true\n            }\n        }\n    ],\n    \"code\": 200\n}"
                         },
                         {
                             "name": "Unauthenticated",
@@ -5073,6 +5206,112 @@
                             ],
                             "cookie": [],
                             "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "GET Workspace",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/workspaces/{{workspace_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "workspaces",
+                                "{{workspace_id}}"
+                            ]
+                        },
+                        "description": "Basic info for a single workspace, including which navbar sections ({{ai_pal|discovery|friends|chat}}) it currently has access to."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/workspaces/{{workspace_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "workspaces",
+                                        "{{workspace_id}}"
+                                    ]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Workspace basic info fetched successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"slug\": \"social_post\",\n        \"title\": \"Curated Social Media\",\n        \"description\": \"Share updates, connect with people, and stay part of what's happening.\",\n        \"prompt\": \"I want to create a Post\",\n        \"is_supported\": true,\n        \"status\": \"active\",\n        \"nav_access\": {\n            \"ai_pal\": true,\n            \"discovery\": true,\n            \"friends\": true,\n            \"chat\": true\n        }\n    },\n    \"code\": 200\n}"
+                        },
+                        {
+                            "name": "Not Found",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/workspaces/{{workspace_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "workspaces",
+                                        "{{workspace_id}}"
+                                    ]
+                                }
+                            },
+                            "status": "Not Found",
+                            "code": 404,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"message\": \"No query results for model [App\\\\Models\\\\Workspace] 999\"\n}"
                         }
                     ]
                 },
@@ -5167,7 +5406,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"Workspace created successfully\",\n    \"data\": {\n        \"id\": 5,\n        \"slug\": \"event_planner\",\n        \"title\": \"Event Planner\",\n        \"description\": \"Create and share an event with your community.\",\n        \"prompt\": \"I want to create an Event\",\n        \"is_supported\": false,\n        \"status\": \"active\"\n    },\n    \"code\": 201\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Workspace created successfully\",\n    \"data\": {\n        \"id\": 5,\n        \"slug\": \"event_planner\",\n        \"title\": \"Event Planner\",\n        \"description\": \"Create and share an event with your community.\",\n        \"prompt\": \"I want to create an Event\",\n        \"is_supported\": false,\n        \"status\": \"active\",\n        \"nav_access\": {\n            \"ai_pal\": true,\n            \"discovery\": true,\n            \"friends\": true,\n            \"chat\": true\n        }\n    },\n    \"code\": 201\n}"
                         },
                         {
                             "name": "Forbidden - Not Admin",
@@ -5208,6 +5447,361 @@
                                     ]
                                 },
                                 "description": "Admin only. Creates a new workspace."
+                            },
+                            "status": "Forbidden",
+                            "code": 403,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"Forbidden\",\n    \"data\": [],\n    \"code\": 403\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "POST Grant Workspace Nav Access",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nav_keys\": [\n        \"discovery\",\n        \"chat\"\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/workspaces/{{workspace_id}}/nav-access",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "workspaces",
+                                "{{workspace_id}}",
+                                "nav-access"
+                            ]
+                        },
+                        "description": "Admin only. Grants this workspace access to one or more fixed nav sections (ai_pal, discovery, friends, chat). Idempotent."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nav_keys\": [\n        \"discovery\",\n        \"chat\"\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/workspaces/{{workspace_id}}/nav-access",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "workspaces",
+                                        "{{workspace_id}}",
+                                        "nav-access"
+                                    ]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Navigation access granted successfully\",\n    \"data\": {\n        \"nav_access\": {\n            \"ai_pal\": true,\n            \"discovery\": true,\n            \"friends\": true,\n            \"chat\": true\n        }\n    },\n    \"code\": 200\n}"
+                        },
+                        {
+                            "name": "Validation Error",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nav_keys\": [\n        \"discovery\",\n        \"chat\"\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/workspaces/{{workspace_id}}/nav-access",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "workspaces",
+                                        "{{workspace_id}}",
+                                        "nav-access"
+                                    ]
+                                }
+                            },
+                            "status": "Unprocessable Entity",
+                            "code": 422,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"Validation failed\",\n    \"data\": {\n        \"nav_keys.0\": [\n            \"The selected nav_keys.0 is invalid.\"\n        ]\n    },\n    \"code\": 422\n}"
+                        },
+                        {
+                            "name": "Forbidden - Not Admin",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nav_keys\": [\n        \"discovery\",\n        \"chat\"\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/workspaces/{{workspace_id}}/nav-access",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "workspaces",
+                                        "{{workspace_id}}",
+                                        "nav-access"
+                                    ]
+                                }
+                            },
+                            "status": "Forbidden",
+                            "code": 403,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"Forbidden\",\n    \"data\": [],\n    \"code\": 403\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "DELETE Revoke Workspace Nav Access",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nav_keys\": [\n        \"discovery\"\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/workspaces/{{workspace_id}}/nav-access",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "workspaces",
+                                "{{workspace_id}}",
+                                "nav-access"
+                            ]
+                        },
+                        "description": "Admin only. Revokes this workspace's access to one or more fixed nav sections (ai_pal, discovery, friends, chat). Idempotent."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nav_keys\": [\n        \"discovery\"\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/workspaces/{{workspace_id}}/nav-access",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "workspaces",
+                                        "{{workspace_id}}",
+                                        "nav-access"
+                                    ]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Navigation access revoked successfully\",\n    \"data\": {\n        \"nav_access\": {\n            \"ai_pal\": true,\n            \"discovery\": false,\n            \"friends\": true,\n            \"chat\": true\n        }\n    },\n    \"code\": 200\n}"
+                        },
+                        {
+                            "name": "Forbidden - Not Admin",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nav_keys\": [\n        \"discovery\"\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/workspaces/{{workspace_id}}/nav-access",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "workspaces",
+                                        "{{workspace_id}}",
+                                        "nav-access"
+                                    ]
+                                }
                             },
                             "status": "Forbidden",
                             "code": 403,
