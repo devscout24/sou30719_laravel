@@ -22,6 +22,7 @@ class ProfileController extends Controller
         }
 
         $profile_data = [
+            'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'profile_photo' => asset($user->avatar ?? 'user.png'),
