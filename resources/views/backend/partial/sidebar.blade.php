@@ -185,6 +185,82 @@
                     </a>
                 </li>
 
+                <li class="side-nav-title mt-2" data-lang="main">Content & Community</li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.workspaces.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.workspaces.index') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-apps"></i></span>
+                        <span class="menu-text">Workspaces</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.feed-topics.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.feed-topics.index') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-hash"></i></span>
+                        <span class="menu-text">Feed Topics</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.posts.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.posts.index') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-news"></i></span>
+                        <span class="menu-text">Posts</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.post-reports.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.post-reports.index') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-flag"></i></span>
+                        <span class="menu-text">Post Reports</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-title mt-2" data-lang="main">Billing</li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.plans.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.plans.index') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-crown"></i></span>
+                        <span class="menu-text">Subscription Plans</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.billing.subscriptions') ? 'active' : '' }}">
+                    <a href="{{ route('admin.billing.subscriptions') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-users-group"></i></span>
+                        <span class="menu-text">Subscriptions</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.billing.payments') ? 'active' : '' }}">
+                    <a href="{{ route('admin.billing.payments') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-credit-card"></i></span>
+                        <span class="menu-text">Payments</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-title mt-2" data-lang="main">Support</li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.support-tickets.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.support-tickets.index') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-ticket"></i></span>
+                        <span class="menu-text">Support Tickets</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.help-support.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.help-support.index') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-headset"></i></span>
+                        <span class="menu-text">Help & Support</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.policies.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.policies.edit') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-file-text"></i></span>
+                        <span class="menu-text">Disclaimers</span>
+                    </a>
+                </li>
+
                 <li class="side-nav-item text-danger">
                     <a href="{{ route('logout') }}" class="side-nav-link">
                         <span class="menu-icon text-danger"><i class="ti ti-logout"></i></span>

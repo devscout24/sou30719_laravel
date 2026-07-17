@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class HelpSupport extends Model
 {
@@ -19,4 +20,9 @@ class HelpSupport extends Model
         'subject'     => 'string',
         'message'     => 'string',
     ];
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'customer_id');
+    }
 }
