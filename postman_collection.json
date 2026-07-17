@@ -79,7 +79,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"Registration successful. Please check your email for the verification code.\",\n    \"data\": {\n        \"email\": \"linktechbd.mahi@gmail.com\",\n        \"expires_at\": 1751932800\n    },\n    \"code\": 201\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Registration successful. Please check your email for the verification code.\",\n    \"data\": {\n        \"id\": 1,\n        \"email\": \"linktechbd.mahi@gmail.com\",\n        \"expires_at\": 1751932800\n    },\n    \"code\": 201\n}"
                         },
                         {
                             "name": "Validation Error - Email Taken",
@@ -307,7 +307,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"A new verification code has been sent to your email.\",\n    \"data\": {\n        \"email\": \"john@example.com\"\n    },\n    \"code\": 200\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"A new verification code has been sent to your email.\",\n    \"data\": {\n        \"id\": 1,\n        \"email\": \"john@example.com\"\n    },\n    \"code\": 200\n}"
                         },
                         {
                             "name": "Account Not Found",
@@ -535,7 +535,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"A password reset code has been sent to your email.\",\n    \"data\": {\n        \"email\": \"john@example.com\"\n    },\n    \"code\": 200\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"A password reset code has been sent to your email.\",\n    \"data\": {\n        \"id\": 1,\n        \"email\": \"john@example.com\"\n    },\n    \"code\": 200\n}"
                         },
                         {
                             "name": "Account Not Found",
@@ -649,7 +649,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"OTP verified successfully.\",\n    \"data\": {\n        \"email\": \"john@example.com\",\n        \"reset_token\": \"a1b2c3d4e5f6...64charrandomtoken\"\n    },\n    \"code\": 200\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"OTP verified successfully.\",\n    \"data\": {\n        \"id\": 1,\n        \"email\": \"john@example.com\",\n        \"reset_token\": \"a1b2c3d4e5f6...64charrandomtoken\"\n    },\n    \"code\": 200\n}"
                         },
                         {
                             "name": "Invalid OTP",
@@ -897,7 +897,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"FCM token stored successfully.\",\n    \"data\": {\n        \"device_id\": \"android_12345\",\n        \"token\": \"FCM_TOKEN_HERE\"\n    },\n    \"code\": 200\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"FCM token stored successfully.\",\n    \"data\": {\n        \"id\": 4,\n        \"device_id\": \"android_12345\",\n        \"token\": \"FCM_TOKEN_HERE\"\n    },\n    \"code\": 200\n}"
                         },
                         {
                             "name": "Validation Error",
@@ -1555,7 +1555,7 @@
                                         }
                                     ],
                                     "cookie": [],
-                                    "body": "{\n    \"status\": true,\n    \"message\": \"Profile Information\",\n    \"data\": {\n        \"name\": \"John Doe\",\n        \"email\": \"john@example.com\",\n        \"profile_photo\": \"http://localhost/user.png\",\n        \"address\": null,\n        \"phone\": null,\n        \"location\": \"Dhaka\",\n        \"latitude\": \"23.8103104\",\n        \"longitude\": \"90.4125181\"\n    },\n    \"code\": 200\n}"
+                                    "body": "{\n    \"status\": true,\n    \"message\": \"Profile Information\",\n    \"data\": {\n        \"id\": 1,\n        \"name\": \"John Doe\",\n        \"email\": \"john@example.com\",\n        \"profile_photo\": \"http://localhost/user.png\",\n        \"address\": null,\n        \"phone\": null,\n        \"location\": \"Dhaka\",\n        \"latitude\": \"23.8103104\",\n        \"longitude\": \"90.4125181\"\n    },\n    \"code\": 200\n}"
                                 },
                                 {
                                     "name": "User Not Found (known bug: intended 404, actual HTTP 500)",
@@ -2188,7 +2188,7 @@
                                         }
                                     ],
                                     "cookie": [],
-                                    "body": "{\n    \"status\": true,\n    \"message\": \"Basic info fetched successfully\",\n    \"data\": {\n        \"name\": \"John Doe\",\n        \"avatar\": \"http://localhost/user.png\",\n        \"location\": \"Dhaka\",\n        \"bio\": \"About me...\",\n        \"interests\": [\n            \"Travel\",\n            \"Music\"\n        ]\n    },\n    \"code\": 200\n}"
+                                    "body": "{\n    \"status\": true,\n    \"message\": \"Basic info fetched successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"name\": \"John Doe\",\n        \"avatar\": \"http://localhost/user.png\",\n        \"location\": \"Dhaka\",\n        \"bio\": \"About me...\",\n        \"interests\": [\n            \"Travel\",\n            \"Music\"\n        ]\n    },\n    \"code\": 200\n}"
                                 },
                                 {
                                     "name": "Unauthenticated",
@@ -4810,7 +4810,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"Basic info fetched successfully\",\n    \"data\": {\n        \"name\": \"Jane Smith\",\n        \"avatar\": \"http://localhost/user.png\",\n        \"location\": \"Dhaka\",\n        \"bio\": \"About me...\",\n        \"interests\": [\n            \"Travel\",\n            \"Music\"\n        ]\n    },\n    \"code\": 200\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Basic info fetched successfully\",\n    \"data\": {\n        \"id\": 2,\n        \"username\": \"janesmith\",\n        \"name\": \"Jane Smith\",\n        \"avatar\": \"http://localhost/user.png\",\n        \"location\": \"Dhaka\",\n        \"bio\": \"About me...\",\n        \"interests\": [\n            \"Travel\",\n            \"Music\"\n        ]\n    },\n    \"code\": 200\n}"
                         },
                         {
                             "name": "Profile Not Found",
@@ -6798,7 +6798,7 @@
                                 }
                             ]
                         },
-                        "description": "Returns paginated feed with category, topic, creator type and post type filters."
+                        "description": "Returns paginated feed filtered by a single topic (fixed or the user's own custom topic — see GET /feed/topics), creator type and post type. Pass topic_id (id from /feed/topics) to target any topic, including custom ones. The category query param (a fixed topic's slug: newest, local, friendship, trending, olympics) still works as a legacy alias and takes the same effect as its matching topic_id — defaults to 'newest' when neither is given."
                     },
                     "response": [
                         {
@@ -6852,7 +6852,7 @@
                                         }
                                     ]
                                 },
-                                "description": "Returns paginated feed with category, topic, creator type and post type filters."
+                                "description": "Returns paginated feed filtered by a single topic (fixed or the user's own custom topic — see GET /feed/topics), creator type and post type. Pass topic_id (id from /feed/topics) to target any topic, including custom ones. The category query param (a fixed topic's slug: newest, local, friendship, trending, olympics) still works as a legacy alias and takes the same effect as its matching topic_id — defaults to 'newest' when neither is given."
                             },
                             "status": "OK",
                             "code": 200,
@@ -6915,7 +6915,8 @@
                                             "value": "15"
                                         }
                                     ]
-                                }
+                                },
+                                "description": "Returns paginated feed filtered by a single topic (fixed or the user's own custom topic — see GET /feed/topics), creator type and post type. Pass topic_id (id from /feed/topics) to target any topic, including custom ones. The category query param (a fixed topic's slug: newest, local, friendship, trending, olympics) still works as a legacy alias and takes the same effect as its matching topic_id — defaults to 'newest' when neither is given."
                             },
                             "status": "Unprocessable Entity",
                             "code": 422,
@@ -6928,6 +6929,50 @@
                             ],
                             "cookie": [],
                             "body": "{\n    \"status\": false,\n    \"message\": \"Location not set. Please update your location to use the Local feed.\",\n    \"data\": [],\n    \"code\": 422\n}"
+                        },
+                        {
+                            "name": "Topic Not Found (invalid topic_id or category)",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/feed?topic_id=9999",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "feed"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "topic_id",
+                                            "value": "9999"
+                                        }
+                                    ]
+                                },
+                                "description": "Returns paginated feed filtered by a single topic (fixed or the user's own custom topic — see GET /feed/topics), creator type and post type. Pass topic_id (id from /feed/topics) to target any topic, including custom ones. The category query param (a fixed topic's slug: newest, local, friendship, trending, olympics) still works as a legacy alias and takes the same effect as its matching topic_id — defaults to 'newest' when neither is given."
+                            },
+                            "status": "Not Found",
+                            "code": 404,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"Topic not found\",\n    \"data\": [],\n    \"code\": 404\n}"
                         }
                     ]
                 },
@@ -7432,7 +7477,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"reason\": \"spam\",\n    \"description\": \"This post contains spam content.\"\n}",
+                            "raw": "{\n    \"reason\": \"spam\",\n    \"description\": \"This post contains spam content.\",\n    \"block_user\": false\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -7450,7 +7495,7 @@
                                 "report"
                             ]
                         },
-                        "description": "Report a post. Users cannot report their own posts."
+                        "description": "Report a post, optionally blocking the post's author at the same time (set block_user to true). Users cannot report their own posts. Reporting the same post again updates the existing report instead of failing."
                     },
                     "response": [
                         {
@@ -7475,7 +7520,7 @@
                                 ],
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"reason\": \"spam\",\n    \"description\": \"This post contains spam content.\"\n}",
+                                    "raw": "{\n    \"reason\": \"spam\",\n    \"description\": \"This post contains spam content.\",\n    \"block_user\": false\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -7493,7 +7538,7 @@
                                         "report"
                                     ]
                                 },
-                                "description": "Report a post. Users cannot report their own posts."
+                                "description": "Report a post, optionally blocking the post's author at the same time (set block_user to true). Users cannot report their own posts. Reporting the same post again updates the existing report instead of failing."
                             },
                             "status": "OK",
                             "code": 200,
@@ -7505,7 +7550,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"Post reported successfully\",\n    \"data\": [],\n    \"code\": 200\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Post reported successfully\",\n    \"data\": {\n        \"blocked\": false\n    },\n    \"code\": 200\n}"
                         },
                         {
                             "name": "Cannot Report Own Post",
@@ -7529,7 +7574,7 @@
                                 ],
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"reason\": \"spam\",\n    \"description\": \"This post contains spam content.\"\n}",
+                                    "raw": "{\n    \"reason\": \"spam\",\n    \"description\": \"This post contains spam content.\",\n    \"block_user\": false\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -7547,7 +7592,7 @@
                                         "report"
                                     ]
                                 },
-                                "description": "Report a post. Users cannot report their own posts."
+                                "description": "Report a post, optionally blocking the post's author at the same time (set block_user to true). Users cannot report their own posts. Reporting the same post again updates the existing report instead of failing."
                             },
                             "status": "Unprocessable Entity",
                             "code": 422,
@@ -7560,44 +7605,9 @@
                             ],
                             "cookie": [],
                             "body": "{\n    \"status\": false,\n    \"message\": \"You cannot report your own post\",\n    \"data\": [],\n    \"code\": 422\n}"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "Feed Categories",
-            "item": [
-                {
-                    "name": "GET Feed Categories",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{token}}",
-                                    "type": "string"
-                                }
-                            ]
                         },
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{base_url}}/feed/categories",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "feed",
-                                "categories"
-                            ]
-                        },
-                        "description": "Returns all active feed categories ordered by sort_order."
-                    },
-                    "response": [
                         {
-                            "name": "Success",
+                            "name": "Success - Reported and Blocked",
                             "originalRequest": {
                                 "auth": {
                                     "type": "bearer",
@@ -7609,19 +7619,34 @@
                                         }
                                     ]
                                 },
-                                "method": "GET",
-                                "header": [],
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"reason\": \"harassment\",\n    \"description\": \"This user is sending unwanted messages.\",\n    \"block_user\": true\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
                                 "url": {
-                                    "raw": "{{base_url}}/feed/categories",
+                                    "raw": "{{base_url}}/posts/{{post_slug}}/report",
                                     "host": [
                                         "{{base_url}}"
                                     ],
                                     "path": [
-                                        "feed",
-                                        "categories"
+                                        "posts",
+                                        "{{post_slug}}",
+                                        "report"
                                     ]
                                 },
-                                "description": "Returns all active feed categories ordered by sort_order."
+                                "description": "Report a post, optionally blocking the post's author at the same time (set block_user to true). Users cannot report their own posts. Reporting the same post again updates the existing report instead of failing."
                             },
                             "status": "OK",
                             "code": 200,
@@ -7633,56 +7658,17 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"Feed categories fetched successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"name\": \"Wellness\",\n            \"slug\": \"wellness\",\n            \"icon\": \"wellness.svg\",\n            \"sort_order\": 1\n        },\n        {\n            \"id\": 2,\n            \"name\": \"Olympics\",\n            \"slug\": \"olympics\",\n            \"icon\": \"olympics.svg\",\n            \"sort_order\": 2\n        }\n    ],\n    \"code\": 200\n}"
-                        },
-                        {
-                            "name": "Unauthenticated",
-                            "originalRequest": {
-                                "auth": {
-                                    "type": "bearer",
-                                    "bearer": [
-                                        {
-                                            "key": "token",
-                                            "value": "{{token}}",
-                                            "type": "string"
-                                        }
-                                    ]
-                                },
-                                "method": "GET",
-                                "header": [],
-                                "url": {
-                                    "raw": "{{base_url}}/feed/categories",
-                                    "host": [
-                                        "{{base_url}}"
-                                    ],
-                                    "path": [
-                                        "feed",
-                                        "categories"
-                                    ]
-                                },
-                                "description": "Returns all active feed categories ordered by sort_order."
-                            },
-                            "status": "Unauthorized",
-                            "code": 401,
-                            "_postman_previewlanguage": "json",
-                            "header": [
-                                {
-                                    "key": "Content-Type",
-                                    "value": "application/json"
-                                }
-                            ],
-                            "cookie": [],
-                            "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Post reported and user blocked successfully\",\n    \"data\": {\n        \"blocked\": true\n    },\n    \"code\": 200\n}"
                         }
                     ]
                 }
             ]
         },
         {
-            "name": "User Feed Topics",
+            "name": "Feed Topics",
             "item": [
                 {
-                    "name": "GET User Feed Topics",
+                    "name": "GET Feed Topics",
                     "request": {
                         "auth": {
                             "type": "bearer",
@@ -7706,7 +7692,7 @@
                                 "topics"
                             ]
                         },
-                        "description": "Returns all custom feed topics for the authenticated user."
+                        "description": "Returns the fixed topics (is_fixed: true) every user shares, followed by this user's own custom topics (is_fixed: false)."
                     },
                     "response": [
                         {
@@ -7734,7 +7720,7 @@
                                         "topics"
                                     ]
                                 },
-                                "description": "Returns all custom feed topics for the authenticated user."
+                                "description": "Returns the fixed topics (is_fixed: true) every user shares, followed by this user's own custom topics (is_fixed: false)."
                             },
                             "status": "OK",
                             "code": 200,
@@ -7746,7 +7732,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"Topics fetched successfully\",\n    \"data\": [\n        {\n            \"id\": 3,\n            \"name\": \"Hiking\",\n            \"created_at\": \"2026-07-01T10:00:00.000000Z\"\n        }\n    ],\n    \"code\": 200\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Topics fetched successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"name\": \"Newest\",\n            \"slug\": \"newest\",\n            \"icon\": \"clock\",\n            \"is_fixed\": true,\n            \"created_at\": \"2026-06-30T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 2,\n            \"name\": \"Local\",\n            \"slug\": \"local\",\n            \"icon\": \"map-pin\",\n            \"is_fixed\": true,\n            \"created_at\": \"2026-06-30T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 3,\n            \"name\": \"Friendship\",\n            \"slug\": \"friendship\",\n            \"icon\": \"users\",\n            \"is_fixed\": true,\n            \"created_at\": \"2026-06-30T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 4,\n            \"name\": \"Trending\",\n            \"slug\": \"trending\",\n            \"icon\": \"trending-up\",\n            \"is_fixed\": true,\n            \"created_at\": \"2026-06-30T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 5,\n            \"name\": \"Olympics\",\n            \"slug\": \"olympics\",\n            \"icon\": \"award\",\n            \"is_fixed\": true,\n            \"created_at\": \"2026-06-30T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 6,\n            \"name\": \"Hiking\",\n            \"slug\": null,\n            \"icon\": null,\n            \"is_fixed\": false,\n            \"created_at\": \"2026-07-01T10:00:00.000000Z\"\n        }\n    ],\n    \"code\": 200\n}"
                         },
                         {
                             "name": "Unauthenticated",
@@ -7773,7 +7759,7 @@
                                         "topics"
                                     ]
                                 },
-                                "description": "Returns all custom feed topics for the authenticated user."
+                                "description": "Returns the fixed topics (is_fixed: true) every user shares, followed by this user's own custom topics (is_fixed: false)."
                             },
                             "status": "Unauthorized",
                             "code": 401,
@@ -7828,7 +7814,7 @@
                                 "topics"
                             ]
                         },
-                        "description": "Create a new custom feed topic. Maximum 10 topics per user."
+                        "description": "Add a custom topic (max 5 per user, on top of the 5 fixed topics). Rejects names that duplicate an existing fixed or custom topic (case-insensitive)."
                     },
                     "response": [
                         {
@@ -7870,7 +7856,7 @@
                                         "topics"
                                     ]
                                 },
-                                "description": "Create a new custom feed topic. Maximum 10 topics per user."
+                                "description": "Add a custom topic (max 5 per user, on top of the 5 fixed topics). Rejects names that duplicate an existing fixed or custom topic (case-insensitive)."
                             },
                             "status": "OK",
                             "code": 200,
@@ -7885,7 +7871,7 @@
                             "body": "{\n    \"status\": true,\n    \"message\": \"Topic added successfully\",\n    \"data\": {\n        \"id\": 6,\n        \"name\": \"Artificial Intelligence\",\n        \"created_at\": \"2026-07-07T12:00:00.000000Z\"\n    },\n    \"code\": 200\n}"
                         },
                         {
-                            "name": "Maximum Topics Reached",
+                            "name": "Maximum Custom Topics Reached",
                             "originalRequest": {
                                 "auth": {
                                     "type": "bearer",
@@ -7923,7 +7909,7 @@
                                         "topics"
                                     ]
                                 },
-                                "description": "Create a new custom feed topic. Maximum 10 topics per user."
+                                "description": "Add a custom topic (max 5 per user, on top of the 5 fixed topics). Rejects names that duplicate an existing fixed or custom topic (case-insensitive)."
                             },
                             "status": "Unprocessable Entity",
                             "code": 422,
@@ -7935,7 +7921,60 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": false,\n    \"message\": \"You have reached the maximum of 10 custom topics.\",\n    \"data\": [],\n    \"code\": 422\n}"
+                            "body": "{\n    \"status\": false,\n    \"message\": \"You have reached the maximum of 5 custom topics.\",\n    \"data\": [],\n    \"code\": 422\n}"
+                        },
+                        {
+                            "name": "Duplicate Name (matches a fixed topic)",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Artificial Intelligence\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/feed/topics",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "feed",
+                                        "topics"
+                                    ]
+                                },
+                                "description": "Add a custom topic (max 5 per user, on top of the 5 fixed topics). Rejects names that duplicate an existing fixed or custom topic (case-insensitive)."
+                            },
+                            "status": "Unprocessable Entity",
+                            "code": 422,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"A topic with this name already exists.\",\n    \"data\": [],\n    \"code\": 422\n}"
                         }
                     ]
                 },
@@ -8049,8 +8088,117 @@
                             "body": "{\n    \"status\": false,\n    \"message\": \"Topic not found\",\n    \"data\": [],\n    \"code\": 404\n}"
                         }
                     ]
+                },
+                {
+                    "name": "GET Feed Categories (Deprecated Alias)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/feed/categories",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "feed",
+                                "categories"
+                            ]
+                        },
+                        "description": "Deprecated: kept only for backward compatibility. Returns the exact same unified list as GET /feed/topics — prefer that endpoint going forward."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/feed/categories",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "feed",
+                                        "categories"
+                                    ]
+                                },
+                                "description": "Deprecated: kept only for backward compatibility. Returns the exact same unified list as GET /feed/topics — prefer that endpoint going forward."
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Topics fetched successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"name\": \"Newest\",\n            \"slug\": \"newest\",\n            \"icon\": \"clock\",\n            \"is_fixed\": true,\n            \"created_at\": \"2026-06-30T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 2,\n            \"name\": \"Local\",\n            \"slug\": \"local\",\n            \"icon\": \"map-pin\",\n            \"is_fixed\": true,\n            \"created_at\": \"2026-06-30T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 3,\n            \"name\": \"Friendship\",\n            \"slug\": \"friendship\",\n            \"icon\": \"users\",\n            \"is_fixed\": true,\n            \"created_at\": \"2026-06-30T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 4,\n            \"name\": \"Trending\",\n            \"slug\": \"trending\",\n            \"icon\": \"trending-up\",\n            \"is_fixed\": true,\n            \"created_at\": \"2026-06-30T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 5,\n            \"name\": \"Olympics\",\n            \"slug\": \"olympics\",\n            \"icon\": \"award\",\n            \"is_fixed\": true,\n            \"created_at\": \"2026-06-30T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 6,\n            \"name\": \"Hiking\",\n            \"slug\": null,\n            \"icon\": null,\n            \"is_fixed\": false,\n            \"created_at\": \"2026-07-01T10:00:00.000000Z\"\n        }\n    ],\n    \"code\": 200\n}"
+                        },
+                        {
+                            "name": "Unauthenticated",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/feed/categories",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "feed",
+                                        "categories"
+                                    ]
+                                },
+                                "description": "Deprecated: kept only for backward compatibility. Returns the exact same unified list as GET /feed/topics — prefer that endpoint going forward."
+                            },
+                            "status": "Unauthorized",
+                            "code": 401,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+                        }
+                    ]
                 }
-            ]
+            ],
+            "description": "Unified feed-topic list: 5 fixed (built-in) topics shared by every user, plus up to 5 custom topics each user can add. Both are used interchangeably as topic_id in GET /feed."
         },
         {
             "name": "AI Feed Search",
@@ -8631,7 +8779,7 @@
                                 }
                             ],
                             "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"Your message has been sent successfully.\",\n    \"data\": null,\n    \"code\": 200\n}"
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Your message has been sent successfully.\",\n    \"data\": {\n        \"id\": 7\n    },\n    \"code\": 200\n}"
                         },
                         {
                             "name": "Validation Error (distinct shape - no status/data/code envelope)",
@@ -10376,6 +10524,610 @@
                             ],
                             "cookie": [],
                             "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Chat",
+            "description": "One-on-one chat between connected friends. Blocked users and non-friends cannot message each other.",
+            "item": [
+                {
+                    "name": "POST Send Message",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "user_id",
+                                    "value": "2",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "message",
+                                    "value": "Hey! How are you?",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "attachments[]",
+                                    "type": "file",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/chat/send-message",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "send-message"
+                            ]
+                        },
+                        "description": "Send a message (text and/or file attachments) to a connected friend. Creates the private conversation on first contact between the two users. Fails if the two users aren't connected (see Friends) or either has blocked the other."
+                    },
+                    "response": [
+                        {
+                            "name": "Success - Text Only",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "key": "user_id",
+                                            "value": "2",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "message",
+                                            "value": "Hey! How are you?",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "attachments[]",
+                                            "type": "file",
+                                            "value": ""
+                                        }
+                                    ]
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/chat/send-message",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "chat",
+                                        "send-message"
+                                    ]
+                                },
+                                "description": "Send a message (text and/or file attachments) to a connected friend. Creates the private conversation on first contact between the two users. Fails if the two users aren't connected (see Friends) or either has blocked the other."
+                            },
+                            "status": "Created",
+                            "code": 201,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Message sent successfully\",\n    \"data\": {\n        \"id\": 2,\n        \"conversation_id\": 1,\n        \"sender_id\": 1,\n        \"message_type\": \"text\",\n        \"message\": \"Hey! How are you?\",\n        \"attachments\": [],\n        \"is_read\": false,\n        \"is_mine\": true,\n        \"created_at\": \"2026-07-17T11:19:38.000000Z\"\n    },\n    \"code\": 201\n}"
+                        },
+                        {
+                            "name": "Success - With Attachment",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "key": "user_id",
+                                            "value": "2",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "message",
+                                            "value": "Hey! How are you?",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "attachments[]",
+                                            "type": "file",
+                                            "value": ""
+                                        }
+                                    ]
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/chat/send-message",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "chat",
+                                        "send-message"
+                                    ]
+                                },
+                                "description": "Send a message (text and/or file attachments) to a connected friend. Creates the private conversation on first contact between the two users. Fails if the two users aren't connected (see Friends) or either has blocked the other."
+                            },
+                            "status": "Created",
+                            "code": 201,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Message sent successfully\",\n    \"data\": {\n        \"id\": 3,\n        \"conversation_id\": 1,\n        \"sender_id\": 1,\n        \"message_type\": \"attachment\",\n        \"message\": \"here is a pic\",\n        \"attachments\": [\n            {\n                \"id\": 1,\n                \"url\": \"http://localhost/storage/messages/HcmqIzQvEnTCg777es62FNPUc4icUoAUnDRrzJr1.png\",\n                \"file_name\": \"pixel.png\",\n                \"mime_type\": \"image/png\",\n                \"file_size\": 68\n            }\n        ],\n        \"is_read\": false,\n        \"is_mine\": true,\n        \"created_at\": \"2026-07-17T11:21:04.000000Z\"\n    },\n    \"code\": 201\n}"
+                        },
+                        {
+                            "name": "Not Connected",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "key": "user_id",
+                                            "value": "2",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "message",
+                                            "value": "Hey! How are you?",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "attachments[]",
+                                            "type": "file",
+                                            "value": ""
+                                        }
+                                    ]
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/chat/send-message",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "chat",
+                                        "send-message"
+                                    ]
+                                },
+                                "description": "Send a message (text and/or file attachments) to a connected friend. Creates the private conversation on first contact between the two users. Fails if the two users aren't connected (see Friends) or either has blocked the other."
+                            },
+                            "status": "Forbidden",
+                            "code": 403,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"You can only message users you are connected with\",\n    \"data\": [],\n    \"code\": 403\n}"
+                        },
+                        {
+                            "name": "Validation Error - No Message or Attachment",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "key": "user_id",
+                                            "value": "2",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "message",
+                                            "value": "Hey! How are you?",
+                                            "type": "text"
+                                        },
+                                        {
+                                            "key": "attachments[]",
+                                            "type": "file",
+                                            "value": ""
+                                        }
+                                    ]
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/chat/send-message",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "chat",
+                                        "send-message"
+                                    ]
+                                },
+                                "description": "Send a message (text and/or file attachments) to a connected friend. Creates the private conversation on first contact between the two users. Fails if the two users aren't connected (see Friends) or either has blocked the other."
+                            },
+                            "status": "Unprocessable Entity",
+                            "code": 422,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"Validation failed\",\n    \"data\": {\n        \"message\": [\n            \"Please provide a message or at least one attachment.\"\n        ]\n    },\n    \"code\": 422\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "GET Conversation",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/chat/conversations/{{chat_conversation_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "conversations",
+                                "{{chat_conversation_id}}"
+                            ]
+                        },
+                        "description": "Full paginated message history for a conversation the authenticated user belongs to (conversation_id comes from Send Message or Recent Chats). Also marks the other participant's messages as read."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/chat/conversations/{{chat_conversation_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "chat",
+                                        "conversations",
+                                        "{{chat_conversation_id}}"
+                                    ]
+                                },
+                                "description": "Full paginated message history for a conversation the authenticated user belongs to (conversation_id comes from Send Message or Recent Chats). Also marks the other participant's messages as read."
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Conversation fetched successfully\",\n    \"data\": {\n        \"conversation_id\": 1,\n        \"user\": {\n            \"id\": 2,\n            \"name\": \"Bob Test\",\n            \"username\": \"bobtest\",\n            \"avatar\": \"http://localhost/user.png\"\n        },\n        \"messages\": [\n            {\n                \"id\": 2,\n                \"conversation_id\": 1,\n                \"sender_id\": 1,\n                \"message_type\": \"text\",\n                \"message\": \"Hey! How are you?\",\n                \"attachments\": [],\n                \"is_read\": true,\n                \"is_mine\": true,\n                \"created_at\": \"2026-07-17T11:19:38.000000Z\"\n            }\n        ],\n        \"pagination\": {\n            \"current_page\": 1,\n            \"per_page\": 30,\n            \"total\": 1,\n            \"last_page\": 1\n        }\n    },\n    \"code\": 200\n}"
+                        },
+                        {
+                            "name": "Not Found (not a participant, or does not exist)",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/chat/conversations/{{chat_conversation_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "chat",
+                                        "conversations",
+                                        "{{chat_conversation_id}}"
+                                    ]
+                                },
+                                "description": "Full paginated message history for a conversation the authenticated user belongs to (conversation_id comes from Send Message or Recent Chats). Also marks the other participant's messages as read."
+                            },
+                            "status": "Not Found",
+                            "code": 404,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"Conversation not found\",\n    \"data\": [],\n    \"code\": 404\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "GET Recent Chats",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/chat/recent",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "recent"
+                            ]
+                        },
+                        "description": "All of the authenticated user's conversations, most recently active first, with a last-message preview and unread count."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/chat/recent",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "chat",
+                                        "recent"
+                                    ]
+                                },
+                                "description": "All of the authenticated user's conversations, most recently active first, with a last-message preview and unread count."
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Recent chats fetched successfully\",\n    \"data\": {\n        \"chats\": [\n            {\n                \"conversation_id\": 1,\n                \"user\": {\n                    \"id\": 2,\n                    \"name\": \"Bob Test\",\n                    \"username\": \"bobtest\",\n                    \"avatar\": \"http://localhost/user.png\"\n                },\n                \"last_message\": {\n                    \"id\": 2,\n                    \"text\": \"Hey! How are you?\",\n                    \"is_mine\": true,\n                    \"created_at\": \"2026-07-17T11:19:38.000000Z\"\n                },\n                \"unread_count\": 0\n            }\n        ],\n        \"pagination\": {\n            \"current_page\": 1,\n            \"per_page\": 20,\n            \"total\": 1,\n            \"last_page\": 1\n        }\n    },\n    \"code\": 200\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "GET All Friends",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/chat/friends?search={{search}}&per_page={{per_page}}&page={{page}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "friends"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "{{search}}"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "{{page}}"
+                                }
+                            ]
+                        },
+                        "description": "The searchable list of connected friends to start a chat with — same data as GET /friends/connected, exposed here for convenience."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/chat/friends?search={{search}}&per_page={{per_page}}&page={{page}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "chat",
+                                        "friends"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "search",
+                                            "value": "{{search}}"
+                                        },
+                                        {
+                                            "key": "per_page",
+                                            "value": "{{per_page}}"
+                                        },
+                                        {
+                                            "key": "page",
+                                            "value": "{{page}}"
+                                        }
+                                    ]
+                                },
+                                "description": "The searchable list of connected friends to start a chat with — same data as GET /friends/connected, exposed here for convenience."
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Connected friends fetched successfully\",\n    \"data\": {\n        \"friends\": [\n            {\n                \"id\": 2,\n                \"name\": \"Bob Test\",\n                \"username\": \"bobtest\",\n                \"avatar\": \"http://localhost/user.png\",\n                \"location\": null\n            }\n        ],\n        \"pagination\": {\n            \"current_page\": 1,\n            \"per_page\": 15,\n            \"total\": 1,\n            \"last_page\": 1\n        }\n    },\n    \"code\": 200\n}"
                         }
                     ]
                 }
