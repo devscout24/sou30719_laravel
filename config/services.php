@@ -40,4 +40,10 @@ return [
         'key' => env('GOOGLE_CLOUD_KEY'),
     ],
 
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+        'chat_model' => env('OPENAI_CHAT_MODEL', 'gpt-4o-mini'),
+        'timeout' => env('OPENAI_TIMEOUT', 60),
+    ],
+
 ];

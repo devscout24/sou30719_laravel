@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckScreenLock;
+use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\JWTMiddleware;
 use Illuminate\Foundation\Application;
 use App\Http\Middleware\AdminMiddleware;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'jwt.verify' => JWTMiddleware::class,
             'lock.screen' => CheckScreenLock::class,
+            'admin' => EnsureUserIsAdmin::class,
         ]);
     })
     ->withBroadcasting(

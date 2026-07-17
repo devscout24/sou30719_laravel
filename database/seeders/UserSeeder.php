@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
 {
@@ -14,6 +15,8 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        $guardName = config('auth.defaults.guard', 'web');
+
         $admin = User::firstOrCreate(
             ['email' => 'admin@admin.com'],
             [
@@ -23,6 +26,7 @@ class UserSeeder extends Seeder
                 'status' => 'active',
             ]
         );
+        Role::firstOrCreate(['name' => 'admin', 'guard_name' => $guardName]);
         $admin->assignRole('admin');
 
         $user = User::firstOrCreate(
@@ -34,6 +38,7 @@ class UserSeeder extends Seeder
                 'status' => 'active',
             ]
         );
+        Role::firstOrCreate(['name' => 'user', 'guard_name' => $guardName]);
         $user->assignRole('user');
 
         $demo = User::firstOrCreate(
@@ -45,6 +50,7 @@ class UserSeeder extends Seeder
                 'status' => 'active',
             ]
         );
+        Role::firstOrCreate(['name' => 'demo', 'guard_name' => $guardName]);
         $demo->assignRole('demo');
     }
 }
