@@ -12,6 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('posts', function (Blueprint $table) {
+            // The 'workspace' column carries a plain index — must be dropped explicitly
+            // before the column itself, or SQLite refuses the drop (MySQL drops it implicitly).
+            $table->dropIndex(['workspace']);
+        });
+
+        Schema::table('posts', function (Blueprint $table) {
             $table->dropColumn(['workspace', 'prompt']);
         });
 

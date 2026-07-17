@@ -8,18 +8,16 @@ use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PostSeeder extends Seeder
 {
     /**
-     * Sample images already present under public/storage/posts, reused
-     * cyclically so the seeder doesn't depend on network access.
+     * Background colors cycled across generated demo images for visual variety.
      */
-    protected array $sampleImages = [
-        'posts/4d860f27-8bec-4989-aa47-7a7de9b750d5.png',
-        'posts/5c152836-4f60-4748-8fe4-9e0140d432cb.png',
-        'posts/d1Rqcrf93HwHZ1zLRO4stoiHWxYcGHDaYjOK6FSX.png',
-        'posts/M4XaMAQqI7uZlVG4OKD2dErTKOZAcnkRzUi1Rlsq.png',
+    protected array $demoColors = [
+        '#6C63FF', '#FF7A59', '#2EC4B6', '#FF9F1C', '#5C6BC0', '#26A69A',
     ];
 
     public function run(): void
@@ -54,14 +52,75 @@ class PostSeeder extends Seeder
                 ]
             );
 
-            if ($post->wasRecentlyCreated && !empty($data['with_image'])) {
+            if (empty($data['with_image'])) {
+                continue;
+            }
+
+            // Self-healing: also repairs posts seeded earlier whose image file
+            // is missing (e.g. never committed / storage wiped), not just new ones.
+            $existingImage = $post->images()->first();
+
+            if ($existingImage && Storage::disk('public')->exists($existingImage->image_path)) {
+                continue;
+            }
+
+            $imagePath = 'posts/demo-' . Str::slug($data['topic']) . '.png';
+            $caption   = $data['image_description'] ?? $data['topic'];
+            $color     = $this->demoColors[$index % count($this->demoColors)];
+
+            $this->generateDemoImage($imagePath, $caption, $color);
+
+            if ($existingImage) {
+                $existingImage->update(['image_path' => $imagePath]);
+            } else {
                 PostImage::create([
                     'post_id'    => $post->id,
-                    'image_path' => $this->sampleImages[$index % count($this->sampleImages)],
+                    'image_path' => $imagePath,
                     'sort_order' => 0,
                 ]);
             }
         }
+    }
+
+    /**
+     * Render a simple captioned placeholder PNG and store it on the public disk,
+     * so seeded posts always have a real, loadable image with no external assets.
+     */
+    protected function generateDemoImage(string $relativePath, string $caption, string $hex): void
+    {
+        if (Storage::disk('public')->exists($relativePath)) {
+            return;
+        }
+
+        $width  = 800;
+        $height = 600;
+
+        $image = imagecreatetruecolor($width, $height);
+        [$r, $g, $b] = array_map('hexdec', str_split(ltrim($hex, '#'), 2));
+        imagefill($image, 0, 0, imagecolorallocate($image, $r, $g, $b));
+
+        $white      = imagecolorallocate($image, 255, 255, 255);
+        $font       = 5;
+        $charWidth  = imagefontwidth($font);
+        $lineHeight = imagefontheight($font) + 6;
+
+        $maxCharsPerLine = max(10, (int) floor(($width - 80) / $charWidth));
+        $lines = explode("\n", wordwrap($caption, $maxCharsPerLine, "\n", true));
+
+        $y = (int) (($height - count($lines) * $lineHeight) / 2);
+
+        foreach ($lines as $line) {
+            $x = (int) (($width - strlen($line) * $charWidth) / 2);
+            imagestring($image, $font, $x, $y, $line, $white);
+            $y += $lineHeight;
+        }
+
+        ob_start();
+        imagepng($image);
+        $contents = ob_get_clean();
+        imagedestroy($image);
+
+        Storage::disk('public')->put($relativePath, $contents);
     }
 
     protected function posts(): array

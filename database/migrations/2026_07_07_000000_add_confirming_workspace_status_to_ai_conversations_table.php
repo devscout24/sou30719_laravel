@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -10,7 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE ai_conversations MODIFY status ENUM('idle', 'confirming_workspace', 'collecting', 'preview', 'awaiting_edit_instruction', 'published') NOT NULL DEFAULT 'idle'");
+        Schema::table('ai_conversations', function (Blueprint $table) {
+            $table->enum('status', ['idle', 'confirming_workspace', 'collecting', 'preview', 'awaiting_edit_instruction', 'published'])
+                ->default('idle')
+                ->change();
+        });
     }
 
     /**
@@ -18,6 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE ai_conversations MODIFY status ENUM('idle', 'collecting', 'preview', 'awaiting_edit_instruction', 'published') NOT NULL DEFAULT 'idle'");
+        Schema::table('ai_conversations', function (Blueprint $table) {
+            $table->enum('status', ['idle', 'collecting', 'preview', 'awaiting_edit_instruction', 'published'])
+                ->default('idle')
+                ->change();
+        });
     }
 };

@@ -38,7 +38,7 @@ class UserConnection extends Model
 
     public function conversation(): HasOne
     {
-        return $this->hasOne(Conversation::class);
+        return $this->hasOne(Conversation::class, 'connection_id');
     }
 
     // ─── Helpers ─────────────────────────────────────

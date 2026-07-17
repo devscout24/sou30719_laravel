@@ -287,15 +287,31 @@ class PostController extends Controller
             return $this->error([], 'You cannot report your own post', 422);
         }
 
-        PostReport::create([
-            'post_id'     => $post->id,
-            'user_id'     => $userId,
-            'reason'      => $request->validated()['reason'],
-            'description' => $request->validated()['description'] ?? null,
-            'status'      => 'pending',
-        ]);
+        // The post_reports table enforces one report per (post, user) — a repeat
+        // report (e.g. resubmitted just to also block) updates the reason instead of failing.
+        PostReport::updateOrCreate(
+            ['post_id' => $post->id, 'user_id' => $userId],
+            [
+                'reason'      => $request->validated()['reason'],
+                'description' => $request->validated()['description'] ?? null,
+                'status'      => 'pending',
+            ]
+        );
 
-        return $this->success([], 'Post reported successfully');
+        $blocked = false;
+
+        if ($request->boolean('block_user')) {
+            UserBlock::firstOrCreate([
+                'user_id'         => $userId,
+                'blocked_user_id' => $post->user_id,
+            ]);
+            $blocked = true;
+        }
+
+        return $this->success(
+            ['blocked' => $blocked],
+            $blocked ? 'Post reported and user blocked successfully' : 'Post reported successfully'
+        );
     }
 
     /**

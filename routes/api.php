@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\AdminAiPostController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BlockController;
+use App\Http\Controllers\API\ChatController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\FeedCategoryController;
 use App\Http\Controllers\API\FeedSearchController;
@@ -186,6 +187,16 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/users/{id}/block', 'block');
         Route::delete('/users/{id}/block', 'unblock');
     });
+
+    // ── Chat: one-on-one messaging with connected friends ────────────────────
+    Route::controller(ChatController::class)->prefix('chat')->group(function () {
+        Route::post('/send-message', 'sendMessage');
+        Route::get('/conversations/{conversation}', 'conversation');
+        Route::get('/recent', 'recent');
+    });
+
+    // "All Friend" for chat search reuses the existing connected-friends list.
+    Route::get('/chat/friends', [FriendController::class, 'connected']);
 
     // ── Admin: AI-generated posts ─────────────────────────────────────────────
     Route::controller(AdminAiPostController::class)->middleware('admin')->group(function () {
