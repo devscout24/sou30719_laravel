@@ -78,6 +78,7 @@ class AuthController extends Controller
         Mail::to($user->email)->send(new OtpSend($otp, 'Verify Your Email'));
 
         return $this->success([
+            'id'    => $user->id,
             'email' => $user->email,
             // In Seconds since epoch
             'expires_at' => $expiresAt->format('U'),
@@ -179,6 +180,7 @@ class AuthController extends Controller
             Mail::to($user->email)->send(new OtpSend($otp, 'Verify Your Email'));
 
             return $this->error([
+                'id'    => $user->id,
                 'email' => $user->email,
             ], 'Your email is not verified. A new verification code has been sent to your email.', 403);
         }
@@ -295,6 +297,7 @@ class AuthController extends Controller
         ]);
 
         return $this->success([
+            'id' => $user->id,
             'email' => $user->email,
             'reset_token' => $user->password_reset_token,
         ], 'OTP verified successfully', 200);
@@ -352,6 +355,7 @@ class AuthController extends Controller
 
         // Email not yet verified — user must login (which will trigger OTP re-send)
         return $this->success([
+            'id'    => $user->id,
             'email' => $user->email,
         ], 'Password reset successful. Please login to verify your email.', 200);
     }
@@ -385,14 +389,10 @@ class AuthController extends Controller
 
         $fcmToken = $user->fcmTokens()->where('device_id', $request->device_id)->first();
 
-        $response = [
-            'device_id' => $user->fcmTokens()->where('device_id', $request->device_id)->first()->device_id,
-            'token' =>  $user->fcmTokens()->where('device_id', $request->device_id)->first()->token,
-        ];
-
         return $this->success([
-            'device_id' => $fcm->device_id,
-            'token'     => $fcm->token,
+            'id'        => $fcmToken->id,
+            'device_id' => $fcmToken->device_id,
+            'token'     => $fcmToken->token,
         ], 'FCM token stored successfully.', 200);
     }
 
@@ -495,6 +495,7 @@ class AuthController extends Controller
         Mail::to($user->email)->send(new OtpSend($otp, 'Verify Your Email'));
 
         return $this->success([
+            'id'    => $user->id,
             'email' => $user->email,
         ], 'A new verification code has been sent to your email.', 200);
     }

@@ -48,6 +48,8 @@ class UserProfileViewController extends Controller
         $datingNickname = optional($user->datingProfile)->dating_nickname;
 
         return $this->success([
+            'id'        => $user->id,
+            'username'  => $user->username,
             'name'      => $datingNickname
                 ? "{$user->name} ({$datingNickname})"
                 : $user->name,

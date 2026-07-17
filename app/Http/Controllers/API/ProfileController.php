@@ -214,6 +214,7 @@ class ProfileController extends Controller
         }
 
         return $this->success([
+            'id'        => $user->id,
             'name'      => $user->name,
             'avatar'    => asset($user->avatar ?? 'user.png'),
             'location'  => $user->location,
