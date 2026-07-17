@@ -5,7 +5,6 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BlockController;
 use App\Http\Controllers\API\ChatController;
 use App\Http\Controllers\API\DashboardController;
-use App\Http\Controllers\API\FeedCategoryController;
 use App\Http\Controllers\API\FeedSearchController;
 use App\Http\Controllers\API\FriendController;
 use App\Http\Controllers\API\HelpCenterController;
@@ -142,16 +141,15 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/posts/{slug}/report', 'report');
     });
 
-    // ── Feed Categories (fixed tabs) ──────────────────────────────────────────
-    Route::controller(FeedCategoryController::class)->group(function () {
-        Route::get('/feed/categories', 'index');
-    });
-
-    // ── User Custom Feed Topics ───────────────────────────────────────────────
+    // ── Feed Topics: fixed (built-in) + user-added, unified ───────────────────
     Route::controller(UserFeedTopicController::class)->group(function () {
         Route::get('/feed/topics', 'index');
         Route::post('/feed/topics', 'store');
         Route::delete('/feed/topics/{id}', 'destroy');
+
+        // Deprecated alias — old clients still calling the previous "categories"
+        // endpoint get the same unified fixed+custom topic list.
+        Route::get('/feed/categories', 'index');
     });
 
     // ── AI Feed Search ────────────────────────────────────────────────────────

@@ -12,6 +12,9 @@ class UserFeedTopicResource extends JsonResource
         return [
             'id'         => $this->id,
             'name'       => $this->name,
+            'slug'       => $this->slug,
+            'icon'       => $this->icon,
+            'is_fixed'   => (bool) $this->is_fixed,
             'created_at' => $this->created_at?->toISOString(),
         ];
     }

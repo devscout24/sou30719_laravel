@@ -7,7 +7,6 @@ use Database\Seeders\RoleSeeder;
 use Database\Seeders\UserSeeder;
 use Database\Seeders\CompanySettingsSeeder;
 use Database\Seeders\DynamicPageSeeder;
-use Database\Seeders\FeedCategorySeeder;
 use Database\Seeders\NotificationSeeder;
 use Database\Seeders\WorkspaceSeeder;
 use Database\Seeders\PostSeeder;
@@ -23,7 +22,6 @@ class DatabaseSeeder extends Seeder
             CompanySettingsSeeder::class,
             DynamicPageSeeder::class,
             WorkspaceSeeder::class,
-            FeedCategorySeeder::class,
             PostSeeder::class,
         ]);
 
