@@ -172,6 +172,7 @@ class AuthController extends Controller
 
         // Return success response (without exposing OTP in production)
         return $this->success([
+            'id' => $user->id,
             'email' => $user->email,
             'otp' => $otp, // Remove this line in production
             'expires_at' => $expiresAt,
@@ -207,6 +208,7 @@ class AuthController extends Controller
         $user->save();
 
         return $this->success([
+            'id' => $user->id,
             'email' => $user->email,
             'reset_token' => $user->password_reset_token,
         ], 'OTP verified successfully', 200);
@@ -293,9 +295,12 @@ class AuthController extends Controller
             ]);
         }
 
+        $fcmToken = $user->fcmTokens()->where('device_id', $request->device_id)->first();
+
         $response = [
-            'device_id' => $user->fcmTokens()->where('device_id', $request->device_id)->first()->device_id,
-            'token' =>  $user->fcmTokens()->where('device_id', $request->device_id)->first()->token,
+            'id' => $fcmToken->id,
+            'device_id' => $fcmToken->device_id,
+            'token' => $fcmToken->token,
         ];
 
         return $this->success($response, 'FCM token stored successfully', 200);

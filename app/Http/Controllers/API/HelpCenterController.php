@@ -30,6 +30,6 @@ class HelpCenterController extends Controller
         $helpSupport->message = $request->message;
         $helpSupport->save();
 
-        return $this->success(null, 'Your message has been sent successfully.', 200);
+        return $this->success(['id' => $helpSupport->id], 'Your message has been sent successfully.', 200);
     }
 }
