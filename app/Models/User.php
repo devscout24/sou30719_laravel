@@ -92,4 +92,36 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(AiConversation::class);
     }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(UserSubscription::class);
+    }
+
+    public function activeSubscription()
+    {
+        return $this->hasOne(UserSubscription::class)->where('status', 'active')->latestOfMany();
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function supportTickets()
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
+
+    public function knowledgeBaseItems()
+    {
+        return $this->hasMany(KnowledgeBaseItem::class);
+    }
+
+    public function connectionsCount(): int
+    {
+        return UserConnection::where('user_one_id', $this->id)
+            ->orWhere('user_two_id', $this->id)
+            ->count();
+    }
 }

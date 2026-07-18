@@ -62,10 +62,14 @@ Route::controller(UserManagementController::class)->group(function () {
     Route::get('admin/users/data', 'data')->name('admin.user.data');
 
     Route::get('/user-lists', 'index')->name('admin.user.lists');
+    Route::get('/user-lists-export', 'export')->name('admin.user.export');
+    Route::post('/user-lists/bulk-delete', 'bulkDestroy')->name('admin.user.bulk-delete');
+
     Route::get('/user-lists/{user}', 'show')->name('admin.user.show');
 
     Route::get('/user-lists/{user}/edit', 'edit')->name('admin.user.edit');
     Route::post('/user-lists/{user}', 'update')->name('admin.user.update');
+    Route::delete('/user-lists/{user}', 'destroy')->name('admin.user.destroy');
 
     Route::post('/user-lists/{user}/status', 'updateUserStatus')->name('admin.user.status.update');
     Route::post('/user-lists/{user}/role', 'updateUserRole')->name('admin.user.role.update');
