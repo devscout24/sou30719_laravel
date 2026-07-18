@@ -118,7 +118,7 @@ class ChatController extends Controller
                 'username' => $otherUser->username,
                 'avatar'   => asset($otherUser->avatar ?? 'user.png'),
             ] : null,
-            'messages'   => ChatMessageResource::collection($messages->items()),
+            'messages'   => ChatMessageResource::collection(collect($messages->items())->reverse()->values()),
             'pagination' => [
                 'current_page' => $messages->currentPage(),
                 'per_page'     => $messages->perPage(),
