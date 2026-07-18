@@ -615,36 +615,8 @@
                         <div class="tab-pane" id="tickets">
                             @if ($user->supportTickets->count())
                                 @foreach ($user->supportTickets as $ticket)
-                                    @php
-                                        $ticketColors = [
-                                            'open' => 'warning',
-                                            'in_progress' => 'info',
-                                            'resolved' => 'success',
-                                            'closed' => 'secondary',
-                                        ];
-                                        $ticketLabels = [
-                                            'open' => 'Pending',
-                                            'in_progress' => 'On-going',
-                                            'resolved' => 'Resolved',
-                                            'closed' => 'Closed',
-                                        ];
-                                        $tc = $ticketColors[$ticket->status] ?? 'secondary';
-                                    @endphp
-                                    <div class="border rounded p-3 mb-2">
-                                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                                            <div>
-                                                <span
-                                                    class="badge bg-{{ $tc }}-subtle text-{{ $tc }} me-2">{{ $ticketLabels[$ticket->status] ?? ucfirst($ticket->status) }}</span>
-                                                <strong>Ticket# {{ $ticket->id }}</strong>
-                                            </div>
-                                            <span
-                                                class="text-muted fs-xs">Posted at {{ optional($ticket->created_at)->format('jS M, Y, h:i A') ?? '—' }}</span>
-                                        </div>
-                                        <h6 class="mt-2 mb-1">{{ $ticket->subject }}</h6>
-                                        <p class="text-muted fs-sm mb-2">{{ \Illuminate\Support\Str::limit($ticket->message, 220) }}</p>
-                                        <a href="{{ route('admin.support-tickets.show', $ticket->id) }}"
-                                            class="fw-semibold text-primary fs-sm">Open Ticket</a>
-                                    </div>
+                                    @php($ticket->setRelation('user', $user))
+                                    @include('backend.partial.ticket-card', ['ticket' => $ticket])
                                 @endforeach
                             @else
                                 <div class="text-center text-muted py-4">No support tickets yet.</div>

@@ -124,10 +124,11 @@ Route::controller(PolicyController::class)->group(function () {
 
 // Support Tickets
 Route::controller(SupportTicketController::class)->prefix('support-tickets')->group(function () {
-    Route::get('/data', 'data')->name('admin.support-tickets.data');
     Route::get('/', 'index')->name('admin.support-tickets.index');
+    Route::get('/export', 'export')->name('admin.support-tickets.export');
     Route::get('/{supportTicket}', 'show')->name('admin.support-tickets.show');
     Route::put('/{supportTicket}/status', 'updateStatus')->name('admin.support-tickets.status');
+    Route::post('/{supportTicket}/replies', 'storeReply')->name('admin.support-tickets.replies.store');
 });
 
 

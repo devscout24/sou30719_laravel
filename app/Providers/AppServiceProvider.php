@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Pagination\Paginator;
 use App\Models\SystemSetting;
 use App\Services\SquarePaymentService;
 
@@ -27,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-
+        Paginator::useBootstrap();
     }
 
 }

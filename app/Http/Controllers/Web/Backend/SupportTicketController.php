@@ -6,65 +6,118 @@ use App\Http\Controllers\Controller;
 use App\Models\SupportTicket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Yajra\DataTables\DataTables;
+use Illuminate\Support\Carbon;
 
 class SupportTicketController extends Controller
 {
-    public function data(Request $request)
+    public function index(Request $request)
     {
-        $query = SupportTicket::query()->with('user');
+        $period = $request->get('period', 'daily');
+
+        [$from, $to] = $this->resolvePeriodRange($period, $request->get('from'), $request->get('to'));
+
+        $totalTickets    = SupportTicket::count();
+        $pendingTickets  = SupportTicket::where('status', 'open')->count();
+        $ongoingTickets  = SupportTicket::where('status', 'in_progress')->count();
+        $resolvedTickets = SupportTicket::where('status', 'resolved')->count();
+        $newTickets      = SupportTicket::whereBetween('created_at', [$from, $to])->count();
+
+        $tickets = $this->filteredQuery($request)
+            ->with('user')
+            ->latest()
+            ->paginate(6)
+            ->withQueryString();
+
+        $types = SupportTicket::TYPES;
+
+        return view('backend.layouts.support_tickets.index', compact(
+            'tickets',
+            'totalTickets',
+            'pendingTickets',
+            'ongoingTickets',
+            'resolvedTickets',
+            'newTickets',
+            'period',
+            'types'
+        ));
+    }
+
+    private function filteredQuery(Request $request)
+    {
+        $query = SupportTicket::query();
 
         if ($request->status && $request->status != 'All') {
             $query->where('status', $request->status);
         }
 
-        return DataTables::of($query)
-            ->addIndexColumn()
+        if ($request->type && $request->type != 'All') {
+            $query->where('type', $request->type);
+        }
 
-            ->addColumn('user_name', function ($ticket) {
-                return $ticket->user->name ?? 'Unknown';
-            })
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->get('from'));
+        }
 
-            ->addColumn('created', function ($ticket) {
-                return $ticket->created_at->format('d M Y');
-            })
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->get('to'));
+        }
 
-            ->addColumn('status_badge', function ($ticket) {
-                $map = [
-                    'open'        => 'danger',
-                    'in_progress' => 'warning',
-                    'resolved'    => 'success',
-                    'closed'      => 'secondary',
-                ];
-                $color = $map[$ticket->status] ?? 'secondary';
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('subject', 'like', "%{$search}%")
+                    ->orWhere('message', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%")
+                            ->orWhere('username', 'like', "%{$search}%");
+                    });
+            });
+        }
 
-                return '<span class="badge bg-' . $color . '-subtle text-' . $color . '">' . ucfirst(str_replace('_', ' ', $ticket->status)) . '</span>';
-            })
-
-            ->addColumn('action', function ($ticket) {
-                return '
-                <div class="d-flex justify-content-center gap-1">
-                    <a href="' . route('admin.support-tickets.show', $ticket->id) . '" class="btn btn-default btn-icon btn-sm">
-                        <i class="ti ti-eye fs-lg"></i>
-                    </a>
-                </div>
-            ';
-            })
-
-            ->rawColumns(['status_badge', 'action'])
-            ->make(true);
+        return $query;
     }
 
-    public function index()
+    private function resolvePeriodRange(string $period, $from = null, $to = null): array
     {
-        return view('backend.layouts.support_tickets.index');
+        $now = Carbon::now();
+
+        return match ($period) {
+            'weekly'  => [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()],
+            'monthly' => [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()],
+            'yearly'  => [$now->copy()->startOfYear(), $now->copy()->endOfYear()],
+            'custom'  => [
+                $from ? Carbon::parse($from)->startOfDay() : $now->copy()->startOfMonth(),
+                $to ? Carbon::parse($to)->endOfDay() : $now->copy()->endOfDay(),
+            ],
+            default   => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
+        };
     }
 
-    public function show(SupportTicket $supportTicket)
+    public function show(Request $request, SupportTicket $supportTicket)
     {
-        $supportTicket->load('user');
+        $supportTicket->load(['user', 'replies.user']);
 
-        return view('backend.layouts.support_tickets.show', ['ticket' => $supportTicket]);
+        $recentTickets = SupportTicket::where('user_id', $supportTicket->user_id)
+            ->where('id', '!=', $supportTicket->id)
+            ->when($request->filled('recent_search'), function ($q) use ($request) {
+                $search = $request->get('recent_search');
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('subject', 'like', "%{$search}%")
+                        ->orWhere('message', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->recent_status && $request->recent_status != 'All', function ($q) use ($request) {
+                $q->where('status', $request->recent_status);
+            })
+            ->with('user')
+            ->latest()
+            ->paginate(3, ['*'], 'recent_page')
+            ->withQueryString();
+
+        return view('backend.layouts.support_tickets.show', [
+            'ticket'        => $supportTicket,
+            'recentTickets' => $recentTickets,
+        ]);
     }
 
     public function updateStatus(Request $request, SupportTicket $supportTicket)
@@ -80,5 +133,51 @@ class SupportTicketController extends Controller
         $supportTicket->update(['status' => $request->status]);
 
         return redirect()->route('admin.support-tickets.show', $supportTicket)->with('success', 'Ticket status updated successfully');
+    }
+
+    public function storeReply(Request $request, SupportTicket $supportTicket)
+    {
+        $validation = Validator::make($request->all(), [
+            'message' => 'required|string|max:5000',
+        ]);
+
+        if ($validation->fails()) {
+            return back()->with('error', $validation->errors()->first());
+        }
+
+        $supportTicket->replies()->create([
+            'user_id'  => auth()->id(),
+            'is_admin' => true,
+            'message'  => $request->message,
+        ]);
+
+        return redirect()->route('admin.support-tickets.show', $supportTicket)->with('success', 'Reply sent successfully');
+    }
+
+    public function export(Request $request)
+    {
+        $query = $this->filteredQuery($request)->with('user');
+
+        $filename = 'tickets-' . now()->format('Y-m-d-His') . '.csv';
+
+        return response()->streamDownload(function () use ($query) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['ID', 'User', 'Type', 'Subject', 'Status', 'Posted']);
+
+            $query->orderBy('id')->chunk(200, function ($tickets) use ($handle) {
+                foreach ($tickets as $ticket) {
+                    fputcsv($handle, [
+                        $ticket->id,
+                        $ticket->user->name ?? 'Unknown',
+                        $ticket->typeLabel(),
+                        $ticket->subject,
+                        ucfirst(str_replace('_', ' ', $ticket->status)),
+                        optional($ticket->created_at)->format('Y-m-d H:i'),
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 }

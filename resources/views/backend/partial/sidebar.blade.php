@@ -243,7 +243,7 @@
                 <li class="side-nav-item {{ Route::currentRouteNamed('admin.support-tickets.*') ? 'active' : '' }}">
                     <a href="{{ route('admin.support-tickets.index') }}" class="side-nav-link">
                         <span class="menu-icon"><i class="ti ti-ticket"></i></span>
-                        <span class="menu-text">Support Tickets</span>
+                        <span class="menu-text">Customer support</span>
                     </a>
                 </li>
 
