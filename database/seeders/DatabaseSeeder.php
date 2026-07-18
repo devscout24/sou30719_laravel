@@ -10,6 +10,7 @@ use Database\Seeders\DynamicPageSeeder;
 use Database\Seeders\NotificationSeeder;
 use Database\Seeders\WorkspaceSeeder;
 use Database\Seeders\PostSeeder;
+use Database\Seeders\ChatSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,6 +24,7 @@ class DatabaseSeeder extends Seeder
             DynamicPageSeeder::class,
             WorkspaceSeeder::class,
             PostSeeder::class,
+            ChatSeeder::class,
         ]);
 
 
