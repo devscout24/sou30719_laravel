@@ -13,6 +13,14 @@
 
     <link href="{{ asset('backend/assets/css/vendors.min.css') }}" rel="stylesheet" />
     <link href="{{ asset('backend/assets/css/app.min.css') }}" rel="stylesheet" />
+
+    <style>
+        /* The uploaded company logo is designed for dark backgrounds and is invisible
+           on this page's white card, so render it as a solid dark silhouette here. */
+        .auth-brand img {
+            filter: brightness(0);
+        }
+    </style>
 </head>
 
 <body>
