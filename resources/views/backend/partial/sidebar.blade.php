@@ -222,6 +222,24 @@
                     </a>
                 </li>
 
+                <li class="side-nav-title mt-2" data-lang="main">AI Operations</li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.llm-agent-log.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.llm-agent-log.index') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-robot"></i></span>
+                        <span class="menu-text">LLM Agent Log</span>
+                        <span class="badge bg-secondary-subtle text-secondary badge-label ms-auto">Soon</span>
+                    </a>
+                    <ul class="sub-menu" style="display: block;">
+                        <li
+                            class="side-nav-item {{ Route::currentRouteNamed('admin.llm-agent-log.transaction-cost') ? 'active' : '' }}">
+                            <a href="{{ route('admin.llm-agent-log.transaction-cost') }}" class="side-nav-link">
+                                <span class="menu-text">LLM transaction &amp; Cost</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
                 <li class="side-nav-title mt-2" data-lang="main">Billing</li>
 
                 <li class="side-nav-item {{ Route::currentRouteNamed('admin.plans.*') ? 'active' : '' }}">

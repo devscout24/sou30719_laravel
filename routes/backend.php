@@ -16,6 +16,7 @@ use App\Http\Controllers\Web\Backend\PostController;
 use App\Http\Controllers\Web\Backend\BillingController;
 use App\Http\Controllers\Web\Backend\TransactionController;
 use App\Http\Controllers\Web\Backend\SocialFeedController;
+use App\Http\Controllers\Web\Backend\AiAgentLogController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
@@ -173,6 +174,13 @@ Route::controller(SocialFeedController::class)->prefix('social-feed')->group(fun
     Route::get('/{post}', 'show')->name('admin.social-feed.show');
     Route::post('/{post}/status', 'updateStatus')->name('admin.social-feed.status');
     Route::delete('/{post}', 'destroy')->name('admin.social-feed.destroy');
+});
+
+
+// LLM Agent Log (UI preview only — no agent-orchestration or LLM usage-logging system exists yet)
+Route::controller(AiAgentLogController::class)->prefix('llm-agent-log')->group(function () {
+    Route::get('/', 'index')->name('admin.llm-agent-log.index');
+    Route::get('/transaction-cost', 'transactionCost')->name('admin.llm-agent-log.transaction-cost');
 });
 
 
