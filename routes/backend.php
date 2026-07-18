@@ -35,6 +35,10 @@ Route::controller(DashboardController::class)->group(function () {
     Route::get('/dashboard', 'index')->name('dashboard');
 });
 
+// Generic placeholder for sidebar entries whose feature isn't built yet.
+Route::get('/coming-soon/{feature}', [\App\Http\Controllers\Web\Backend\ComingSoonController::class, 'index'])
+    ->name('admin.coming-soon');
+
 Route::controller(SystemController::class)->group(function () {
     Route::get('/system-settings', 'systemSettings')->name('system.settings');
     Route::post('/system-settings-update', 'systemSettingsUpdate')->name('system.settings.update');
