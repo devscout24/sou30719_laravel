@@ -134,11 +134,36 @@ class Post extends Model
         return $this->status === 'published';
     }
 
+    public function isUserCreated(): bool
+    {
+        return $this->created_by === 'user';
+    }
+
+    public function deactivate(): void
+    {
+        $this->update(['status' => 'removed']);
+    }
+
+    public function activate(): void
+    {
+        $this->update(['status' => 'published']);
+    }
+
+    public function displayTitle(): string
+    {
+        return $this->topic ?: $this->title ?: '(untitled)';
+    }
+
     // ─── Scopes ──────────────────────────────────────
 
     public function scopePublished($query)
     {
         return $query->where('status', 'published');
+    }
+
+    public function scopeUserCreated($query)
+    {
+        return $query->where('created_by', 'user');
     }
 
     public function scopeVisible($query)

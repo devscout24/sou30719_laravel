@@ -15,6 +15,7 @@ use App\Http\Controllers\Web\Backend\PostReportController;
 use App\Http\Controllers\Web\Backend\PostController;
 use App\Http\Controllers\Web\Backend\BillingController;
 use App\Http\Controllers\Web\Backend\TransactionController;
+use App\Http\Controllers\Web\Backend\SocialFeedController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
@@ -160,6 +161,18 @@ Route::controller(PostController::class)->prefix('posts')->group(function () {
     Route::post('/generate', 'generate')->name('admin.posts.generate.store');
     Route::get('/{post}', 'show')->name('admin.posts.show');
     Route::delete('/{post}', 'destroy')->name('admin.posts.destroy');
+});
+
+
+// Social Feed Management (user-submitted posts only, excludes AI-authored posts)
+Route::controller(SocialFeedController::class)->prefix('social-feed')->group(function () {
+    Route::get('/data', 'data')->name('admin.social-feed.data');
+    Route::get('/', 'index')->name('admin.social-feed.index');
+    Route::get('/export', 'export')->name('admin.social-feed.export');
+    Route::post('/bulk-delete', 'bulkDestroy')->name('admin.social-feed.bulk-delete');
+    Route::get('/{post}', 'show')->name('admin.social-feed.show');
+    Route::post('/{post}/status', 'updateStatus')->name('admin.social-feed.status');
+    Route::delete('/{post}', 'destroy')->name('admin.social-feed.destroy');
 });
 
 

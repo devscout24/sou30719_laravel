@@ -187,6 +187,13 @@
 
                 <li class="side-nav-title mt-2" data-lang="main">Content & Community</li>
 
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.social-feed.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.social-feed.index') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-message-2"></i></span>
+                        <span class="menu-text">Social feed</span>
+                    </a>
+                </li>
+
                 <li class="side-nav-item {{ Route::currentRouteNamed('admin.workspaces.*') ? 'active' : '' }}">
                     <a href="{{ route('admin.workspaces.index') }}" class="side-nav-link">
                         <span class="menu-icon"><i class="ti ti-apps"></i></span>
