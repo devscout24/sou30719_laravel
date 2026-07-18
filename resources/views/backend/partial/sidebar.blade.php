@@ -84,75 +84,8 @@
                 <li class="side-nav-item {{ Route::currentRouteNamed('dashboard') ? 'active' : '' }}">
                     <a href="{{ route('dashboard') }}" class="side-nav-link">
                         <span class="menu-icon"><i class="ti ti-dashboard"></i></span>
-                        <span class="menu-text" data-lang="apps-chat">Dashboards</span>
+                        <span class="menu-text" data-lang="apps-chat">Dashboard</span>
                     </a>
-                </li>
-
-                <li class="side-nav-item">
-                    <a data-bs-toggle="collapse" href="#dashboards" aria-expanded="false" aria-controls="dashboards"
-                        class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-wand"></i></span>
-                        <span class="menu-text" data-lang="dashboards">Demo 01</span>
-                        <span class="menu-arrow"></span>
-                    </a>
-                    <div class="collapse" id="dashboards" style="height: 100%;">
-                        <ul class="sub-menu">
-                            <li class="side-nav-item active">
-                                <a href="index.html" class="side-nav-link">
-                                    <span class="menu-text">Demo Dropdown 01</span>
-                                </a>
-                            </li>
-                            <li class="side-nav-item active">
-                                <a href="index.html" class="side-nav-link">
-                                    <span class="menu-text">Demo Dropdown 02</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-
-                <li class="side-nav-title mt-2" data-lang="main">Settings</li>
-
-                <li class="side-nav-item {{ Route::currentRouteNamed('admin.user.profile') ? 'active' : '' }}">
-                    <a href="{{ route('admin.user.profile') }}" class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-user-circle"></i></span>
-                        <span class="menu-text" data-lang="apps-chat">My Profile</span>
-                    </a>
-                </li>
-
-                <li class="side-nav-item {{ Route::currentRouteNamed('system.settings') ? 'active' : '' }}">
-                    <a href="{{ route('system.settings') }}" class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-settings"></i></span>
-                        <span class="menu-text" data-lang="apps-chat">System Settings</span>
-                    </a>
-                </li>
-
-                <li class="side-nav-item">
-                    <a data-bs-toggle="collapse" href="#credentials" aria-expanded="false" aria-controls="credentials"
-                        class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-key"></i></span>
-                        <span class="menu-text" data-lang="credentials">Credentials Settings</span>
-                        <span class="menu-arrow"></span>
-                    </a>
-                    <div class="collapse" id="credentials" style="height: 100%;">
-                        <ul class="sub-menu">
-                            <li class="side-nav-item active">
-                                <a href="{{ route('system.settings.credential' , 'Mail') }}" class="side-nav-link">
-                                    <span class="menu-text">Mail Settings</span>
-                                </a>
-                            </li>
-                            <li class="side-nav-item active">
-                                <a href="{{ route('system.settings.credential' , 'Stripe') }}" class="side-nav-link">
-                                    <span class="menu-text">Stripe Settings</span>
-                                </a>
-                            </li>
-                            <li class="side-nav-item active">
-                                <a href="{{ route('system.settings.credential' , 'GoogleCloud') }}" class="side-nav-link">
-                                    <span class="menu-text">Google Console Settings</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
                 </li>
 
                 <li class="side-nav-item">
@@ -178,19 +111,12 @@
                     </div>
                 </li>
 
-                <li class="side-nav-item">
-                    <a href="{{ route('dynamic.pages') }}" class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-code"></i></span>
-                        <span class="menu-text" data-lang="apps-chat">Dynamic Pages</span>
-                    </a>
-                </li>
-
                 <li class="side-nav-title mt-2" data-lang="main">Content & Community</li>
 
                 <li class="side-nav-item {{ Route::currentRouteNamed('admin.social-feed.*') ? 'active' : '' }}">
                     <a href="{{ route('admin.social-feed.index') }}" class="side-nav-link">
                         <span class="menu-icon"><i class="ti ti-message-2"></i></span>
-                        <span class="menu-text">Social feed</span>
+                        <span class="menu-text">Social Feed</span>
                     </a>
                 </li>
 
@@ -215,10 +141,48 @@
                     </a>
                 </li>
 
-                <li class="side-nav-item {{ Route::currentRouteNamed('admin.post-reports.*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.post-reports.index') }}" class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-flag"></i></span>
-                        <span class="menu-text">Post Reports</span>
+                <li
+                    class="side-nav-item {{ Route::currentRouteNamed('admin.coming-soon') && request()->route('feature') === 'marketplace-ad' ? 'active' : '' }}">
+                    <a href="{{ route('admin.coming-soon', 'marketplace-ad') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-shopping-cart"></i></span>
+                        <span class="menu-text">Marketplace/Ad</span>
+                        <span class="badge bg-secondary-subtle text-secondary badge-label ms-auto">Soon</span>
+                    </a>
+                </li>
+
+                <li
+                    class="side-nav-item {{ Route::currentRouteNamed('admin.coming-soon') && request()->route('feature') === 'event' ? 'active' : '' }}">
+                    <a href="{{ route('admin.coming-soon', 'event') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-calendar-event"></i></span>
+                        <span class="menu-text">Event</span>
+                        <span class="badge bg-secondary-subtle text-secondary badge-label ms-auto">Soon</span>
+                    </a>
+                </li>
+
+                <li
+                    class="side-nav-item {{ Route::currentRouteNamed('admin.coming-soon') && request()->route('feature') === 'interest-hub' ? 'active' : '' }}">
+                    <a href="{{ route('admin.coming-soon', 'interest-hub') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-heart"></i></span>
+                        <span class="menu-text">Interest Hub</span>
+                        <span class="badge bg-secondary-subtle text-secondary badge-label ms-auto">Soon</span>
+                    </a>
+                </li>
+
+                <li
+                    class="side-nav-item {{ Route::currentRouteNamed('admin.coming-soon') && request()->route('feature') === 'courier' ? 'active' : '' }}">
+                    <a href="{{ route('admin.coming-soon', 'courier') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-truck-delivery"></i></span>
+                        <span class="menu-text">Courier</span>
+                        <span class="badge bg-secondary-subtle text-secondary badge-label ms-auto">Soon</span>
+                    </a>
+                </li>
+
+                <li
+                    class="side-nav-item {{ Route::currentRouteNamed('admin.coming-soon') && request()->route('feature') === 'cms' ? 'active' : '' }}">
+                    <a href="{{ route('admin.coming-soon', 'cms') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-file-text"></i></span>
+                        <span class="menu-text">CMS</span>
+                        <span class="badge bg-secondary-subtle text-secondary badge-label ms-auto">Soon</span>
                     </a>
                 </li>
 
@@ -242,33 +206,57 @@
 
                 <li class="side-nav-title mt-2" data-lang="main">Billing</li>
 
-                <li class="side-nav-item {{ Route::currentRouteNamed('admin.plans.*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.plans.index') }}" class="side-nav-link">
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#subscription-management" aria-expanded="false"
+                        aria-controls="subscription-management" class="side-nav-link">
                         <span class="menu-icon"><i class="ti ti-crown"></i></span>
-                        <span class="menu-text">Subscription Plans</span>
+                        <span class="menu-text">Subscription Management</span>
+                        <span class="menu-arrow"></span>
                     </a>
-                </li>
-
-                <li class="side-nav-item {{ Route::currentRouteNamed('admin.billing.subscriptions') ? 'active' : '' }}">
-                    <a href="{{ route('admin.billing.subscriptions') }}" class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-users-group"></i></span>
-                        <span class="menu-text">Subscriptions</span>
-                    </a>
+                    <div class="collapse" id="subscription-management" style="height: 100%;">
+                        <ul class="sub-menu">
+                            <li
+                                class="side-nav-item {{ Route::currentRouteNamed('admin.billing.subscriptions') ? 'active' : '' }}">
+                                <a href="{{ route('admin.billing.subscriptions') }}" class="side-nav-link">
+                                    <span class="menu-text">Subscriptions</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item {{ Route::currentRouteNamed('admin.plans.*') ? 'active' : '' }}">
+                                <a href="{{ route('admin.plans.index') }}" class="side-nav-link">
+                                    <span class="menu-text">Subscription Plan</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
 
                 <li class="side-nav-item {{ Route::currentRouteNamed('admin.transactions.*') ? 'active' : '' }}">
                     <a href="{{ route('admin.transactions.index') }}" class="side-nav-link">
                         <span class="menu-icon"><i class="ti ti-credit-card"></i></span>
-                        <span class="menu-text">Transactions</span>
+                        <span class="menu-text">Transaction</span>
                     </a>
                 </li>
 
                 <li class="side-nav-title mt-2" data-lang="main">Support</li>
 
+                <li class="side-nav-item {{ Route::currentRouteNamed('dynamic.pages*') ? 'active' : '' }}">
+                    <a href="{{ route('dynamic.pages') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-code"></i></span>
+                        <span class="menu-text" data-lang="apps-chat">Dynamic Pages</span>
+                    </a>
+                </li>
+
                 <li class="side-nav-item {{ Route::currentRouteNamed('admin.support-tickets.*') ? 'active' : '' }}">
                     <a href="{{ route('admin.support-tickets.index') }}" class="side-nav-link">
                         <span class="menu-icon"><i class="ti ti-ticket"></i></span>
-                        <span class="menu-text">Customer support</span>
+                        <span class="menu-text">Customer Support</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.post-reports.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.post-reports.index') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-flag"></i></span>
+                        <span class="menu-text">Report Management</span>
                     </a>
                 </li>
 
@@ -283,6 +271,60 @@
                     <a href="{{ route('admin.policies.edit') }}" class="side-nav-link">
                         <span class="menu-icon"><i class="ti ti-file-text"></i></span>
                         <span class="menu-text">Disclaimers</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-title mt-2" data-lang="main">General Setting</li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.user.profile') ? 'active' : '' }}">
+                    <a href="{{ route('admin.user.profile') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-user-circle"></i></span>
+                        <span class="menu-text" data-lang="apps-chat">My Profile</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item {{ Route::currentRouteNamed('system.settings') ? 'active' : '' }}">
+                    <a href="{{ route('system.settings') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-settings"></i></span>
+                        <span class="menu-text" data-lang="apps-chat">System Setting</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#credentials" aria-expanded="false" aria-controls="credentials"
+                        class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-key"></i></span>
+                        <span class="menu-text" data-lang="credentials">Credential Management</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse" id="credentials" style="height: 100%;">
+                        <ul class="sub-menu">
+                            <li class="side-nav-item active">
+                                <a href="{{ route('system.settings.credential' , 'Mail') }}" class="side-nav-link">
+                                    <span class="menu-text">Mail Settings</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item active">
+                                <a href="{{ route('system.settings.credential' , 'Stripe') }}" class="side-nav-link">
+                                    <span class="menu-text">Stripe Settings</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item active">
+                                <a href="{{ route('system.settings.credential' , 'GoogleCloud') }}"
+                                    class="side-nav-link">
+                                    <span class="menu-text">Google Console Settings</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li
+                    class="side-nav-item {{ Route::currentRouteNamed('admin.coming-soon') && request()->route('feature') === 'admin-management' ? 'active' : '' }}">
+                    <a href="{{ route('admin.coming-soon', 'admin-management') }}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-user-shield"></i></span>
+                        <span class="menu-text">Admin Management</span>
+                        <span class="badge bg-secondary-subtle text-secondary badge-label ms-auto">Soon</span>
                     </a>
                 </li>
 
