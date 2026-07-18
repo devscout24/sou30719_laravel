@@ -6,20 +6,20 @@
                 <!-- Logo light -->
                 <a href="{{ route('dashboard') }}" class="logo-light">
                     <span class="logo-lg">
-                        <img src="{{ asset('backend') }}/assets/images/logo.png" alt="logo" />
+                        <img src="{{ companyLogo() }}" alt="logo" />
                     </span>
                     <span class="logo-sm">
-                        <img src="{{ asset('backend') }}/assets/images/logo-sm.png" alt="small logo" />
+                        <img src="{{ companyLogo() }}" alt="small logo" />
                     </span>
                 </a>
 
                 <!-- Logo Dark -->
                 <a href="{{ route('dashboard') }}" class="logo-dark">
                     <span class="logo-lg">
-                        <img src="{{ asset('backend') }}/assets/images/logo-black.png" alt="dark logo" />
+                        <img src="{{ companyLogo() }}" alt="dark logo" />
                     </span>
                     <span class="logo-sm">
-                        <img src="{{ asset('backend') }}/assets/images/logo-sm.png" alt="small logo" />
+                        <img src="{{ companyLogo() }}" alt="small logo" />
                     </span>
                 </a>
             </div>

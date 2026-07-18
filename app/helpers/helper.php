@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\CompanySetting;
 use App\Models\SystemSetting;
 use Illuminate\Support\Facades\Cache;
 
@@ -148,6 +149,25 @@ if (!function_exists('companyEmail')) {
     function companyEmail()
     {
         return getSystemSetting('email', '');
+    }
+}
+
+if (!function_exists('companyLogo')) {
+    /**
+     * Get the uploaded company logo URL (from the System Settings page),
+     * falling back to the theme's default logo when none is uploaded yet.
+     *
+     * @return string
+     */
+    function companyLogo()
+    {
+        $settings = CompanySetting::first();
+
+        if ($settings && $settings->logo && file_exists(public_path($settings->logo))) {
+            return asset($settings->logo);
+        }
+
+        return asset('backend/assets/images/logo.png');
     }
 }
 

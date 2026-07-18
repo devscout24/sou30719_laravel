@@ -39,7 +39,7 @@
                         @endif
 
                         <div class="auth-brand text-center mb-1">
-                            <img src="{{ asset('backend/assets/images/logo-black.png') }}" height="40" />
+                            <img src="{{ companyLogo() }}" height="40" />
                             <h4 class="fw-bold text-dark mt-3 text-uppercase">Great to see you again ethan 👋</h4>
                             <p class="text-muted w-lg-75 mx-auto">Let’s get you signed in. <br> Enter your email and
                                 password
