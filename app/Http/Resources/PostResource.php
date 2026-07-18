@@ -15,6 +15,7 @@ class PostResource extends JsonResource
             'workspace'  => $this->workspace?->slug,
             'author'     => [
                 'id'     => $this->user->id,
+                'username' => $this->user->username,
                 'name'   => $this->user->name,
                 'avatar' => asset($this->user->avatar ?? 'user.png'),
             ],
