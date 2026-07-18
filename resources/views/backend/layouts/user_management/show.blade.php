@@ -553,55 +553,25 @@
                         <div class="tab-pane" id="transactions">
                             @if ($user->payments->count())
                                 <div class="table-responsive">
-                                    <table class="table table-custom table-centered table-hover w-100 mb-0">
+                                    <table class="table table-custom table-centered table-select table-hover w-100 mb-0">
                                         <thead class="bg-light align-middle bg-opacity-25 thead-sm text-nowrap">
                                             <tr class="text-uppercase fs-xxs">
+                                                <th><input type="checkbox" class="form-check-input"></th>
                                                 <th>ID</th>
                                                 <th>Date</th>
                                                 <th>Subject</th>
-                                                <th>Method</th>
+                                                <th>Username</th>
+                                                <th>Mode</th>
                                                 <th>Amount</th>
                                                 <th>Tax</th>
                                                 <th>Status</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody class="text-nowrap">
                                             @foreach ($user->payments as $payment)
-                                                <tr>
-                                                    <td>#{{ $payment->id }}</td>
-                                                    <td>{{ optional($payment->created_at)->format('d M Y, h:i A') ?? '—' }}</td>
-                                                    <td>
-                                                        {{ optional(optional($payment->subscription)->plan)->name ?? 'Subscription' }}
-                                                    </td>
-                                                    <td>{{ $payment->stripe_payment_intent_id ? 'Stripe' : '—' }}</td>
-                                                    <td>{{ number_format($payment->amount, 2) }}
-                                                        {{ strtoupper($payment->currency) }}</td>
-                                                    <td>—</td>
-                                                    <td>
-                                                        @php
-                                                            $statusColors = [
-                                                                'paid' => 'success',
-                                                                'pending' => 'warning',
-                                                                'failed' => 'danger',
-                                                                'refunded' => 'secondary',
-                                                            ];
-                                                            $sc = $statusColors[$payment->status] ?? 'secondary';
-                                                        @endphp
-                                                        <span
-                                                            class="badge bg-{{ $sc }}-subtle text-{{ $sc }}">{{ ucfirst($payment->status) }}</span>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        @if ($payment->receipt_url)
-                                                            <a href="{{ $payment->receipt_url }}" target="_blank"
-                                                                class="btn btn-default btn-icon btn-sm">
-                                                                <i class="ti ti-file-invoice fs-lg"></i>
-                                                            </a>
-                                                        @else
-                                                            —
-                                                        @endif
-                                                    </td>
-                                                </tr>
+                                                @php($payment->setRelation('user', $user))
+                                                @include('backend.partial.transaction-row', ['transaction' => $payment])
                                             @endforeach
                                         </tbody>
                                     </table>

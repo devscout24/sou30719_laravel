@@ -14,6 +14,7 @@ use App\Http\Controllers\Web\Backend\HelpSupportController;
 use App\Http\Controllers\Web\Backend\PostReportController;
 use App\Http\Controllers\Web\Backend\PostController;
 use App\Http\Controllers\Web\Backend\BillingController;
+use App\Http\Controllers\Web\Backend\TransactionController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
@@ -162,10 +163,18 @@ Route::controller(PostController::class)->prefix('posts')->group(function () {
 });
 
 
-// Billing: Subscriptions & Payments (read-only reporting)
+// Billing: Subscriptions (read-only reporting)
 Route::controller(BillingController::class)->prefix('billing')->group(function () {
     Route::get('/subscriptions/data', 'subscriptionsData')->name('admin.billing.subscriptions.data');
     Route::get('/subscriptions', 'subscriptions')->name('admin.billing.subscriptions');
-    Route::get('/payments/data', 'paymentsData')->name('admin.billing.payments.data');
-    Route::get('/payments', 'payments')->name('admin.billing.payments');
+});
+
+
+// Transactions (payments across all app modules)
+Route::controller(TransactionController::class)->prefix('transactions')->group(function () {
+    Route::get('/', 'index')->name('admin.transactions.index');
+    Route::get('/export', 'export')->name('admin.transactions.export');
+    Route::get('/{transaction}', 'show')->name('admin.transactions.show');
+    Route::get('/{transaction}/invoice', 'invoice')->name('admin.transactions.invoice');
+    Route::get('/{transaction}/invoice/download', 'downloadInvoice')->name('admin.transactions.invoice.download');
 });

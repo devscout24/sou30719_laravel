@@ -10,10 +10,13 @@ class Payment extends Model
     protected $fillable = [
         'user_id',
         'subscription_id',
+        'context',
         'stripe_payment_intent_id',
         'amount',
+        'tax',
         'currency',
         'status',
+        'payment_method',
         'invoice_url',
         'receipt_url',
         'paid_at',
@@ -21,8 +24,22 @@ class Payment extends Model
 
     protected $casts = [
         'amount'  => 'decimal:2',
+        'tax'     => 'decimal:2',
         'status'  => 'string',
         'paid_at' => 'datetime',
+    ];
+
+    /**
+     * App modules a transaction can originate from.
+     */
+    public const CONTEXTS = [
+        'subscription' => 'Subscription',
+        'social'       => 'Social',
+        'marketplace'  => 'Marketplace',
+        'matches'      => 'Matches',
+        'interest_hub' => 'Interest Hub',
+        'courier'      => 'Courier',
+        'events'       => 'Events',
     ];
 
     // ─── Relationships ───────────────────────────────
@@ -50,6 +67,32 @@ class Payment extends Model
     public function isPaid(): bool
     {
         return $this->status === 'paid';
+    }
+
+    public function contextLabel(): string
+    {
+        return self::CONTEXTS[$this->context] ?? ucfirst(str_replace('_', ' ', $this->context ?? 'subscription'));
+    }
+
+    public function statusLabel(): string
+    {
+        return match ($this->status) {
+            'paid'     => 'Successful',
+            'pending'  => 'Pending',
+            'failed'   => 'Failed',
+            'refunded' => 'Refunded',
+            default    => ucfirst($this->status),
+        };
+    }
+
+    public function methodLabel(): string
+    {
+        return $this->payment_method ? ucfirst($this->payment_method) : '—';
+    }
+
+    public function getTotalAttribute(): string
+    {
+        return number_format($this->amount + $this->tax, 2);
     }
 
     // ─── Scopes ──────────────────────────────────────

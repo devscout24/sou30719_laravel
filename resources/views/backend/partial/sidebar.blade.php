@@ -231,10 +231,10 @@
                     </a>
                 </li>
 
-                <li class="side-nav-item {{ Route::currentRouteNamed('admin.billing.payments') ? 'active' : '' }}">
-                    <a href="{{ route('admin.billing.payments') }}" class="side-nav-link">
+                <li class="side-nav-item {{ Route::currentRouteNamed('admin.transactions.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.transactions.index') }}" class="side-nav-link">
                         <span class="menu-icon"><i class="ti ti-credit-card"></i></span>
-                        <span class="menu-text">Payments</span>
+                        <span class="menu-text">Transactions</span>
                     </a>
                 </li>
 
