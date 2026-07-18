@@ -52,7 +52,9 @@ return new class extends Migration
             if (Schema::hasColumn('users', 'current_team_id')) {
                 $cols[] = 'current_team_id';
             }
-            $table->dropColumn($cols);
+            if (! empty($cols)) {
+                $table->dropColumn($cols);
+            }
         });
     }
 };

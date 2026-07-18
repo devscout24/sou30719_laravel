@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\Backend\AdminUserController;
+use App\Http\Controllers\Web\Backend\ComingSoonController;
 use App\Http\Controllers\Web\Backend\DashboardController;
 use App\Http\Controllers\Web\Backend\DynamicPageController;
 use App\Http\Controllers\Web\Backend\SystemController;
@@ -36,7 +37,7 @@ Route::controller(DashboardController::class)->group(function () {
 });
 
 // Generic placeholder for sidebar entries whose feature isn't built yet.
-Route::get('/coming-soon/{feature}', [\App\Http\Controllers\Web\Backend\ComingSoonController::class, 'index'])
+Route::get('/coming-soon/{feature}', [ComingSoonController::class, 'index'])
     ->name('admin.coming-soon');
 
 Route::controller(SystemController::class)->group(function () {
