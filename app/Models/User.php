@@ -47,6 +47,7 @@ class User extends Authenticatable implements JWTSubject
             'password' => 'hashed',
             'dob' => 'date',
             'profile_completed' => 'boolean',
+            'last_login_at' => 'datetime',
         ];
     }
     protected $casts = [
