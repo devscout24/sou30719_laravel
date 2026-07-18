@@ -52,6 +52,50 @@ class PostCuratorService
     }
 
     /**
+     * Generate an advertisement listing (Market Place workspace) from the
+     * structured ad-form fields the frontend collected, plus an optional
+     * user note and product/service image(s).
+     *
+     * @param  string[]  $imagePaths  Paths on the public disk.
+     * @return array{topic: string, description: string, short_description: string, tags: string[]}
+     */
+    public function curateAd(
+        string $adType,
+        string $category,
+        ?string $productUrl,
+        ?float $discountPercentage,
+        ?string $userNote,
+        array $imagePaths
+    ): array {
+        $facts = "Listing type: {$adType}\nCategory: {$category}";
+
+        if (filled($productUrl)) {
+            $facts .= "\nProduct/service URL: {$productUrl}";
+        }
+
+        if ($discountPercentage !== null && $discountPercentage > 0) {
+            $facts .= "\nDiscount: {$discountPercentage}%";
+        }
+
+        if (filled($userNote)) {
+            $facts .= "\nSeller's notes: {$userNote}";
+        }
+
+        $content = [['type' => 'text', 'text' => $facts]];
+
+        foreach (array_slice($imagePaths, 0, self::MAX_IMAGES) as $path) {
+            $content[] = ['type' => 'image_url', 'image_url' => ['url' => $this->toDataUri($path)]];
+        }
+
+        $reply = $this->openAI->chat([
+            ['role' => 'system', 'content' => $this->curateAdSystemPrompt()],
+            ['role' => 'user', 'content' => $content],
+        ], jsonMode: true);
+
+        return $this->parseResult($reply);
+    }
+
+    /**
      * Generate a standalone post (no images) for an admin-created AI post.
      *
      * @return array{topic: string, description: string, short_description: string, tags: string[]}
@@ -111,6 +155,30 @@ class PostCuratorService
             - "long_description" is an improved, polished version of the user's description: keep their voice and meaning, fix grammar, make it engaging.
             - "short_description" is a 1-2 sentence preview/summary of the post for feed cards.
             - "tags" is an array of 3-10 relevant lowercase keywords or short phrases (e.g. "food", "travel", "sunset") derived from the content and images.
+            TEXT;
+    }
+
+    protected function curateAdSystemPrompt(): string
+    {
+        return <<<'TEXT'
+            You are an assistant inside the "Market Place" workspace of an app, writing an advertisement listing
+            for a product or service the user is selling. You are given the listing type, category, and any
+            optional URL, discount, seller notes, and image(s).
+
+            Respond with ONLY strict JSON (no markdown, no commentary) in exactly this shape:
+            {
+              "topic": "...",
+              "long_description": "...",
+              "short_description": "...",
+              "tags": ["tag1", "tag2", "tag3"]
+            }
+
+            Rules:
+            - "topic" is a short product/service name (1-4 words) inferred from the image and any notes given.
+            - "long_description" is a persuasive, well-written advertisement description (2-4 sentences) covering what's
+              being offered, based on the image and the facts provided. Mention the discount naturally if one was given.
+            - "short_description" is a 1-sentence preview for a marketplace card.
+            - "tags" is an array of 3-8 relevant lowercase keywords derived from the category, type, and image.
             TEXT;
     }
 

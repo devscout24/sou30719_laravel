@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Exceptions\AIServiceException;
 use App\Models\AiConversation;
 use App\Models\AiMessage;
+use App\Models\MatchRecommendation;
 use App\Models\Post;
+use App\Models\User;
 use App\Models\Workspace;
 use App\Services\AI\PostCuratorService;
 use App\Services\AI\ReplyIntentClassifierService;
@@ -19,6 +21,8 @@ class WorkspaceConversationService
     protected const PILL_DELETE = 'Delete post';
     protected const PILL_CONFIRM_YES = "Yes, that's right";
     protected const PILL_CONFIRM_NO = 'No, something else';
+    protected const PILL_MALE = 'Male';
+    protected const PILL_FEMALE = 'Female';
 
     protected const MSG_SELECT_PROMPT = 'Select one of the optional prompts below';
     protected const MSG_UNDER_DEV = 'This feature is currently under development and will be available soon.';
@@ -32,6 +36,17 @@ class WorkspaceConversationService
     protected const MSG_CONVERSATION_DONE = 'This conversation has already been completed. Start a new conversation to create another post.';
     protected const MSG_CHOOSE_OPTION = 'Please choose one of the options below.';
     protected const MSG_CLARIFY_INTENT = "I couldn't quite tell what you're looking to do. Could you be more specific, or choose one of the options below?";
+
+    protected const MSG_PROFILE_INCOMPLETE = 'Please complete your dating preference on your profile before we can find matches for you.';
+    protected const MSG_ASK_GENDER = "What are you looking for — male or female?";
+    protected const MSG_ASK_GENDER_AGAIN = "Sorry, I didn't catch that. Are you looking for male or female matches?";
+    protected const MSG_NO_MATCHES = 'No matching found. Please check back again later.';
+
+    protected const MSG_MARKETPLACE_GUIDANCE = 'Let\'s create your advertisement. Please provide the product/service details through the form — image, type, category, link, and discount — then send it over.';
+    protected const MSG_AD_NEED_IMAGE = 'Please upload at least one image for your listing.';
+    protected const MSG_AD_NEED_TYPE = 'Please choose whether this is a product or a service.';
+    protected const MSG_AD_NEED_CATEGORY = 'Please choose a category for your listing.';
+    protected const MSG_AD_PUBLISHED = 'Your advertisement has been published successfully.';
 
     public function __construct(
         protected PostCuratorService $curator,
@@ -87,16 +102,19 @@ class WorkspaceConversationService
      * to get the updated conversation state.
      *
      * @param  string[]  $imagePaths
+     * @param  array{ad_type?: ?string, category?: ?string, product_url?: ?string, discount_percentage?: ?float, show_sale_badge?: ?bool}  $extra
+     *         Market Place ad-form fields, present only while collecting in that workspace.
      * @return array{success: true}
      */
-    public function handleMessage(AiConversation $conversation, ?string $text, array $imagePaths): array
+    public function handleMessage(AiConversation $conversation, ?string $text, array $imagePaths, array $extra = []): array
     {
         $this->recordUserMessage($conversation, $text, $imagePaths);
 
         match ($conversation->status) {
             'idle'                      => $this->handleIdle($conversation, $text),
             'confirming_workspace'      => $this->handleConfirmingWorkspace($conversation, $text),
-            'collecting'                => $this->handleCollecting($conversation, $text, $imagePaths),
+            'awaiting_match_gender'     => $this->handleAwaitingMatchGender($conversation, $text),
+            'collecting'                => $this->handleCollecting($conversation, $text, $imagePaths, $extra),
             'preview'                   => $this->handlePreview($conversation, $text),
             'awaiting_edit_instruction' => $this->handleEditInstruction($conversation, $text),
             default                     => $this->storeReply($conversation, self::MSG_CONVERSATION_DONE),
@@ -178,12 +196,26 @@ class WorkspaceConversationService
             return;
         }
 
+        if ($workspace->slug === Workspace::SLUG_MATCHES) {
+            $this->enterMatchesWorkspace($conversation, $workspace);
+            return;
+        }
+
         $conversation->update(['workspace_id' => $workspace->id, 'status' => 'collecting']);
         $this->storeReply($conversation, $this->guidanceFor($workspace));
     }
 
-    protected function handleCollecting(AiConversation $conversation, ?string $text, array $imagePaths): void
+    // ─── Social Post / Market Place Collection ──────────────────────────────
+
+    protected function handleCollecting(AiConversation $conversation, ?string $text, array $imagePaths, array $extra): void
     {
+        $workspace = $conversation->workspace;
+
+        if ($workspace && $workspace->slug === Workspace::SLUG_MARKET_PLACE) {
+            $this->handleMarketplaceCollecting($conversation, $text, $imagePaths, $extra);
+            return;
+        }
+
         $description = $conversation->description;
         $images      = $conversation->images ?? [];
 
@@ -241,6 +273,75 @@ class WorkspaceConversationService
         $this->storePills($conversation, $this->previewPills());
     }
 
+    /**
+     * @param  array{ad_type?: ?string, category?: ?string, product_url?: ?string, discount_percentage?: ?float, show_sale_badge?: ?bool}  $extra
+     */
+    protected function handleMarketplaceCollecting(AiConversation $conversation, ?string $text, array $imagePaths, array $extra): void
+    {
+        $images = $conversation->images ?? [];
+
+        if (!empty($imagePaths)) {
+            $images = array_merge($images, $imagePaths);
+        }
+
+        $adType             = $extra['ad_type'] ?? $conversation->ad_type;
+        $category           = $extra['category'] ?? $conversation->category;
+        $productUrl         = $extra['product_url'] ?? $conversation->product_url;
+        $discountPercentage = $extra['discount_percentage'] ?? $conversation->discount_percentage;
+        $showSaleBadge      = $extra['show_sale_badge'] ?? $conversation->show_sale_badge ?? false;
+        $note               = filled($text) ? trim($text) : $conversation->image_description;
+
+        $conversation->update([
+            'images'              => $images,
+            'ad_type'             => $adType,
+            'category'            => $category,
+            'product_url'         => $productUrl,
+            'discount_percentage' => $discountPercentage,
+            'show_sale_badge'     => $showSaleBadge,
+            'image_description'   => $note,
+        ]);
+
+        if (empty($images)) {
+            $this->storeReply($conversation, self::MSG_AD_NEED_IMAGE);
+            return;
+        }
+
+        if (blank($adType)) {
+            $this->storeReply($conversation, self::MSG_AD_NEED_TYPE);
+            return;
+        }
+
+        if (blank($category)) {
+            $this->storeReply($conversation, self::MSG_AD_NEED_CATEGORY);
+            return;
+        }
+
+        try {
+            $result = $this->curator->curateAd(
+                $adType,
+                $category,
+                $productUrl,
+                $discountPercentage !== null ? (float) $discountPercentage : null,
+                $note,
+                $images
+            );
+        } catch (AIServiceException $e) {
+            $this->storeReply($conversation, $e->getMessage());
+            return;
+        }
+
+        $conversation->update([
+            'topic'             => $result['topic'],
+            'description'       => $result['description'],
+            'short_description' => $result['short_description'],
+            'tags'              => $result['tags'],
+            'status'            => 'preview',
+        ]);
+
+        $this->storeAdPreview($conversation);
+        $this->storePills($conversation, $this->previewPills());
+    }
+
     protected function handlePreview(AiConversation $conversation, ?string $text): void
     {
         $action = $this->replyClassifier->classifyPreviewAction((string) $text);
@@ -284,13 +385,35 @@ class WorkspaceConversationService
             'status'            => 'preview',
         ]);
 
-        $this->storePostPreview($conversation);
+        $this->storePreview($conversation);
         $this->storePills($conversation, $this->previewPills());
+    }
+
+    /**
+     * Dispatch to the right preview card renderer for the conversation's workspace.
+     */
+    protected function storePreview(AiConversation $conversation): void
+    {
+        $workspace = $conversation->workspace;
+
+        if ($workspace && $workspace->slug === Workspace::SLUG_MARKET_PLACE) {
+            $this->storeAdPreview($conversation);
+            return;
+        }
+
+        $this->storePostPreview($conversation);
     }
 
     protected function approve(AiConversation $conversation): void
     {
-        $post = DB::transaction(function () use ($conversation) {
+        $workspace = $conversation->workspace;
+
+        if ($workspace && $workspace->slug === Workspace::SLUG_MARKET_PLACE) {
+            $this->approveAd($conversation);
+            return;
+        }
+
+        DB::transaction(function () use ($conversation) {
             $post = Post::create([
                 'user_id'           => $conversation->user_id,
                 'workspace_id'      => $conversation->workspace_id,
@@ -312,11 +435,42 @@ class WorkspaceConversationService
             }
 
             $conversation->update(['status' => 'published', 'post_id' => $post->id]);
-
-            return $post;
         });
 
         $this->storeReply($conversation, self::MSG_PUBLISHED);
+    }
+
+    protected function approveAd(AiConversation $conversation): void
+    {
+        DB::transaction(function () use ($conversation) {
+            $post = Post::create([
+                'user_id'             => $conversation->user_id,
+                'workspace_id'        => $conversation->workspace_id,
+                'topic'               => $conversation->topic,
+                'type'                => 'ad',
+                'created_by'          => 'user',
+                'content'             => $conversation->description,
+                'short_description'   => $conversation->short_description,
+                'image_description'   => $conversation->image_description,
+                'tags'                => $conversation->tags ?? [],
+                'category'            => $conversation->category,
+                'ad_type'             => $conversation->ad_type,
+                'product_url'         => $conversation->product_url,
+                'discount_percentage' => $conversation->discount_percentage,
+                'show_sale_badge'     => $conversation->show_sale_badge ?? false,
+                'visibility'          => 'public',
+                'status'              => 'published',
+                'published_at'        => now(),
+            ]);
+
+            foreach (($conversation->images ?? []) as $index => $path) {
+                $post->images()->create(['image_path' => $path, 'sort_order' => $index]);
+            }
+
+            $conversation->update(['status' => 'published', 'post_id' => $post->id]);
+        });
+
+        $this->storeReply($conversation, self::MSG_AD_PUBLISHED);
     }
 
     protected function deleteDraft(AiConversation $conversation): void
@@ -325,6 +479,72 @@ class WorkspaceConversationService
 
         // No messages to store — the conversation is deleted.
         // The frontend will receive a success response and can redirect.
+    }
+
+    // ─── Matches ─────────────────────────────────────────────────────────────
+
+    protected function enterMatchesWorkspace(AiConversation $conversation, Workspace $workspace): void
+    {
+        /** @var User $user */
+        $user = $conversation->user()->first();
+
+        if (!$user || !$user->hasCompletedDatingProfile()) {
+            $conversation->update(['workspace_id' => null, 'status' => 'idle']);
+            $this->storeReply($conversation, self::MSG_PROFILE_INCOMPLETE);
+            $this->storePills($conversation, $this->activePrompts());
+            return;
+        }
+
+        $conversation->update(['workspace_id' => $workspace->id, 'status' => 'awaiting_match_gender']);
+        $this->storeReply($conversation, self::MSG_ASK_GENDER);
+        $this->storePills($conversation, $this->genderPills());
+    }
+
+    protected function handleAwaitingMatchGender(AiConversation $conversation, ?string $text): void
+    {
+        $gender = $this->replyClassifier->classifyGender((string) $text);
+
+        if (!$gender) {
+            $this->storeReply($conversation, self::MSG_ASK_GENDER_AGAIN);
+            $this->storePills($conversation, $this->genderPills());
+            return;
+        }
+
+        $candidates = $this->findMatchCandidates($conversation->user_id, $gender);
+
+        if ($candidates->isEmpty()) {
+            $conversation->update(['status' => 'completed']);
+            $this->storeReply($conversation, self::MSG_NO_MATCHES);
+            return;
+        }
+
+        foreach ($candidates as $candidate) {
+            MatchRecommendation::updateOrCreate(
+                ['user_id' => $conversation->user_id, 'recommended_user_id' => $candidate->id],
+                ['status' => 'pending']
+            );
+        }
+
+        $conversation->update(['status' => 'completed']);
+        $this->storeMatchSuggestions($conversation, $candidates);
+    }
+
+    /**
+     * Users whose dating profile is complete, active, and matches the requested gender.
+     *
+     * @return \Illuminate\Support\Collection<int, User>
+     */
+    protected function findMatchCandidates(int $userId, string $gender, int $limit = 10)
+    {
+        return User::query()
+            ->where('id', '!=', $userId)
+            ->where('status', 'active')
+            ->whereHas('datingProfile', function ($query) use ($gender) {
+                $query->where('dating_gender', $gender)->where('is_active', true);
+            })
+            ->with(['datingProfile.images'])
+            ->limit($limit)
+            ->get();
     }
 
     // ─── Message Persistence ─────────────────────────────────────────────────
@@ -375,6 +595,64 @@ class WorkspaceConversationService
             'conversation_id' => $conversation->id,
             'sender'          => 'ai',
             'type'            => 'post',
+            'message'         => json_encode($payload),
+        ]);
+    }
+
+    /**
+     * Store an AI-generated advertisement preview card (Market Place workspace).
+     */
+    protected function storeAdPreview(AiConversation $conversation): AiMessage
+    {
+        $payload = [
+            'topic'               => $conversation->topic,
+            'description'         => $conversation->description,
+            'short_description'   => $conversation->short_description,
+            'tags'                => $conversation->tags ?? [],
+            'ad_type'             => $conversation->ad_type,
+            'category'            => $conversation->category,
+            'product_url'         => $conversation->product_url,
+            'discount_percentage' => $conversation->discount_percentage,
+            'show_sale_badge'     => (bool) $conversation->show_sale_badge,
+            'images'              => array_map(
+                fn (string $path) => ['path' => $path],
+                $conversation->images ?? []
+            ),
+        ];
+
+        return AiMessage::create([
+            'conversation_id' => $conversation->id,
+            'sender'          => 'ai',
+            'type'            => 'ad_preview',
+            'message'         => json_encode($payload),
+        ]);
+    }
+
+    /**
+     * Store suggested dating-profile matches (Matches workspace).
+     *
+     * @param  \Illuminate\Support\Collection<int, User>  $candidates
+     */
+    protected function storeMatchSuggestions(AiConversation $conversation, $candidates): AiMessage
+    {
+        $payload = $candidates->map(function (User $candidate) {
+            $profile = $candidate->datingProfile;
+            $photo   = $profile?->images?->firstWhere('is_primary', true) ?? $profile?->images?->first();
+
+            return [
+                'user_id'  => $candidate->id,
+                'name'     => $candidate->name,
+                'username' => $candidate->username,
+                'city'     => $profile?->dating_location ?? $profile?->city,
+                'about'    => $profile?->about ?? $profile?->about_me,
+                'photo'    => $photo ? ['path' => $photo->image_path] : null,
+            ];
+        })->values()->all();
+
+        return AiMessage::create([
+            'conversation_id' => $conversation->id,
+            'sender'          => 'ai',
+            'type'            => 'matches',
             'message'         => json_encode($payload),
         ]);
     }
@@ -457,11 +735,17 @@ class WorkspaceConversationService
         return [self::PILL_APPROVE, self::PILL_EDIT, self::PILL_DELETE];
     }
 
+    protected function genderPills(): array
+    {
+        return [self::PILL_MALE, self::PILL_FEMALE];
+    }
+
     protected function guidanceFor(Workspace $workspace): string
     {
         return match ($workspace->slug) {
-            'social_post' => self::MSG_SOCIAL_GUIDANCE,
-            default       => self::MSG_UNDER_DEV,
+            Workspace::SLUG_SOCIAL_POST   => self::MSG_SOCIAL_GUIDANCE,
+            Workspace::SLUG_MARKET_PLACE  => self::MSG_MARKETPLACE_GUIDANCE,
+            default                       => self::MSG_UNDER_DEV,
         };
     }
 

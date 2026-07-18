@@ -14,6 +14,9 @@ class ReplyIntentClassifierService
     protected const EDIT_WORDS = ['edit', 'change', 'modify', 'update', 'revise', 'fix', 'tweak'];
     protected const DELETE_WORDS = ['delete', 'remove', 'cancel', 'discard', 'scrap'];
 
+    protected const MALE_WORDS = ['male', 'man', 'men', 'guy', 'guys', 'boy', 'boys'];
+    protected const FEMALE_WORDS = ['female', 'woman', 'women', 'girl', 'girls', 'lady', 'ladies'];
+
     public function __construct(protected OpenAIService $openai)
     {
     }
@@ -68,6 +71,30 @@ class ReplyIntentClassifierService
         }
 
         return $this->aiClassify($text, ['approve', 'edit', 'delete']);
+    }
+
+    /**
+     * Interpret a free-text reply naming a gender preference (Matches workspace).
+     *
+     * @return 'male'|'female'|null
+     */
+    public function classifyGender(string $text): ?string
+    {
+        if (blank($text)) {
+            return null;
+        }
+
+        $words = $this->normalize($text);
+
+        if ($this->matchesAny($words, self::FEMALE_WORDS)) {
+            return 'female';
+        }
+
+        if ($this->matchesAny($words, self::MALE_WORDS)) {
+            return 'male';
+        }
+
+        return $this->aiClassify($text, ['male', 'female']);
     }
 
     /**

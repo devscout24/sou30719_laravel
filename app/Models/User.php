@@ -125,4 +125,18 @@ class User extends Authenticatable implements JWTSubject
             ->orWhere('user_two_id', $this->id)
             ->count();
     }
+
+    /**
+     * Whether this user's dating profile has enough information for the
+     * Matches AI workspace to search for and be found by other daters.
+     */
+    public function hasCompletedDatingProfile(): bool
+    {
+        $profile = $this->datingProfile;
+
+        return $profile !== null
+            && filled($profile->dating_gender)
+            && $this->datingPreference !== null
+            && filled($this->datingPreference->interested_in);
+    }
 }

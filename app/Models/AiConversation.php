@@ -21,12 +21,20 @@ class AiConversation extends Model
         'image_description',
         'tags',
         'images',
+        'ad_type',
+        'category',
+        'product_url',
+        'discount_percentage',
+        'show_sale_badge',
     ];
 
     protected $casts = [
-        'status' => 'string',
-        'images' => 'array',
-        'tags'   => 'array',
+        'status'               => 'string',
+        'images'               => 'array',
+        'tags'                 => 'array',
+        'ad_type'              => 'string',
+        'discount_percentage'  => 'decimal:2',
+        'show_sale_badge'      => 'boolean',
     ];
 
     protected static function booted(): void
@@ -94,6 +102,21 @@ class AiConversation extends Model
     public function isPublished(): bool
     {
         return $this->status === 'published';
+    }
+
+    public function isAwaitingMatchGender(): bool
+    {
+        return $this->status === 'awaiting_match_gender';
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === 'completed';
+    }
+
+    public function isTerminal(): bool
+    {
+        return in_array($this->status, ['published', 'completed'], true);
     }
 
     public function hasDescription(): bool

@@ -11,7 +11,7 @@ class AiMessageResource extends JsonResource
     {
         return [
             'id'          => $this->id,
-            'type'        => $this->type,        // message, card, post, pills
+            'type'        => $this->type,        // message, post, ad_preview, matches, pills
             'sender'      => $this->sender,      // user, ai
             'content'     => $this->resolvedContent(),
             'attachments' => $this->resolvedAttachments(),
@@ -21,17 +21,28 @@ class AiMessageResource extends JsonResource
 
     /**
      * Decode the message content, resolving any embedded image paths (e.g. the
-     * post preview card's images) into full URLs with domain.
+     * post/ad preview card's images, or a matched user's photo) into full URLs
+     * with domain.
      */
     protected function resolvedContent(): mixed
     {
         $content = $this->decodedContent();
 
-        if ($this->type === 'post' && is_array($content) && !empty($content['images'])) {
+        if (in_array($this->type, ['post', 'ad_preview'], true) && is_array($content) && !empty($content['images'])) {
             $content['images'] = array_map(
                 fn (array $image) => ['path' => $this->toUrl($image['path'])],
                 $content['images']
             );
+        }
+
+        if ($this->type === 'matches' && is_array($content)) {
+            $content = array_map(function (array $candidate) {
+                if (!empty($candidate['photo']['path'])) {
+                    $candidate['photo']['path'] = $this->toUrl($candidate['photo']['path']);
+                }
+
+                return $candidate;
+            }, $content);
         }
 
         return $content;

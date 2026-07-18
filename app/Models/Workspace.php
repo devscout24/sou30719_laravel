@@ -8,6 +8,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Workspace extends Model
 {
+    /**
+     * Canonical workspace slugs. See database/seeders/WorkspaceSeeder.php.
+     */
+    public const SLUG_SOCIAL_POST = 'social_post';
+    public const SLUG_MATCHES = 'matches';
+    public const SLUG_MARKET_PLACE = 'market_place';
+    public const SLUG_EVENT = 'event';
+    public const SLUG_INTEREST_HUB = 'interest_hub';
+    public const SLUG_PERSONAL_COURIER = 'personal_courier';
+
     protected $fillable = [
         'title',
         'description',

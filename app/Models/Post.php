@@ -12,6 +12,30 @@ class Post extends Model
 {
     use SoftDeletes;
 
+    /**
+     * Demo category list for product ads — replace with a real catalog later.
+     */
+    public const PRODUCT_CATEGORIES = [
+        'electronics'      => 'Electronics',
+        'fashion_apparel'  => 'Fashion & Apparel',
+        'home_furniture'   => 'Home & Furniture',
+        'vehicles'         => 'Vehicles',
+        'books_hobbies'    => 'Books & Hobbies',
+        'other'            => 'Other',
+    ];
+
+    public const SERVICE_CATEGORIES = [
+        'professional_business' => 'Professional & Business Services',
+        'home_improvement'      => 'Home Improvement & Maintenance',
+        'health_wellness'       => 'Health, Wellness & Medical',
+        'education_training'    => 'Education & Training',
+        'finance_insurance'     => 'Finance & Insurance',
+        'travel_hospitality'    => 'Travel, Hospitality & Leisure',
+        'tech_it_software'      => 'Tech, IT & Software Services',
+        'personal_care_beauty'  => 'Personal Care & Beauty Services',
+        'automotive'            => 'Automotive Services',
+    ];
+
     protected $fillable = [
         'slug',
         'user_id',
@@ -27,6 +51,10 @@ class Post extends Model
         'price',
         'location',
         'category',
+        'ad_type',
+        'product_url',
+        'discount_percentage',
+        'show_sale_badge',
         'event_date',
         'event_location',
         'visibility',
@@ -35,14 +63,17 @@ class Post extends Model
     ];
 
     protected $casts = [
-        'price'             => 'decimal:2',
-        'event_date'        => 'datetime',
-        'published_at'      => 'datetime',
-        'tags'              => 'array',
-        'type'              => 'string',
-        'created_by'        => 'string',
-        'visibility'        => 'string',
-        'status'            => 'string',
+        'price'                => 'decimal:2',
+        'discount_percentage'  => 'decimal:2',
+        'show_sale_badge'      => 'boolean',
+        'event_date'           => 'datetime',
+        'published_at'         => 'datetime',
+        'tags'                 => 'array',
+        'type'                 => 'string',
+        'ad_type'              => 'string',
+        'created_by'           => 'string',
+        'visibility'           => 'string',
+        'status'               => 'string',
     ];
 
     protected static function booted(): void
@@ -152,6 +183,11 @@ class Post extends Model
     public function displayTitle(): string
     {
         return $this->topic ?: $this->title ?: '(untitled)';
+    }
+
+    public static function categoriesFor(string $adType): array
+    {
+        return $adType === 'product' ? self::PRODUCT_CATEGORIES : self::SERVICE_CATEGORIES;
     }
 
     // ─── Scopes ──────────────────────────────────────

@@ -85,7 +85,14 @@ class ConversationController extends Controller
             ? $this->uploader->storeMany($request->file('images'))
             : [];
 
-        $this->conversations->handleMessage($conversation, $request->validated()['message'] ?? null, $imagePaths);
+        $validated = $request->validated();
+
+        $extra = collect($validated)
+            ->only(['ad_type', 'category', 'product_url', 'discount_percentage', 'show_sale_badge'])
+            ->filter(fn ($value) => $value !== null)
+            ->all();
+
+        $this->conversations->handleMessage($conversation, $validated['message'] ?? null, $imagePaths, $extra);
 
         return $this->success([], 'Message sent successfully');
     }
