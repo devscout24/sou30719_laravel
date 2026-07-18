@@ -36,7 +36,7 @@
                         <div>
                             <h5 class="mb-0">{{ $user->name ?? 'N/A' }}</h5>
                             @if ($user->username)
-                                <span class="text-muted fs-sm">@{{ $user->username }}</span>
+                                <span class="text-muted fs-sm">{{ '@' . $user->username }}</span>
                             @endif
                             <div class="mt-1">
                                 <span class="badge text-bg-light badge-label">
@@ -173,7 +173,7 @@
             {{-- Tabs Card --}}
             <div class="card">
                 <div class="card-header card-tabs">
-                    <ul class="nav nav-tabs card-header-tabs nav-bordered flex-nowrap overflow-auto">
+                    <ul class="nav nav-tabs card-header-tabs nav-bordered flex-wrap row-gap-1">
                         <li class="nav-item">
                             <a href="#basic-info" data-bs-toggle="tab" class="nav-link active">Basic info</a>
                         </li>
@@ -275,7 +275,7 @@
                         {{-- Dating preference --}}
                         <div class="tab-pane" id="dating-preference">
 
-                            <ul class="nav nav-pills bg-light-subtle rounded p-1 mb-3 flex-nowrap overflow-auto">
+                            <ul class="nav nav-pills bg-light-subtle rounded p-1 mb-3 flex-wrap row-gap-1">
                                 <li class="nav-item">
                                     <a href="#identity-location" data-bs-toggle="tab"
                                         class="nav-link active text-nowrap">Identity & Location</a>
