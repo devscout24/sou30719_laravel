@@ -70,7 +70,7 @@ class SystemController extends Controller
         // 4. Handle Logo Upload
         if ($request->hasFile('company_logo')) {
             $oldImage = $settings->logo != 'logo.png' ? $settings->logo : null;
-            $logo = $this->uploadImage($request->file('company_logo'), $oldImage, 'uploads/company/', 150, 150, 'logo-' . time());
+            $logo = $this->uploadImage($request->file('company_logo'), $oldImage, 'uploads/company/', 520, 130, 'logo-' . time());
         }
 
 
