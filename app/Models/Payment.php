@@ -90,6 +90,16 @@ class Payment extends Model
         return $this->payment_method ? ucfirst($this->payment_method) : '—';
     }
 
+    public function formattedId(): string
+    {
+        return '#ID-' . str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
+    }
+
+    public function planName(): ?string
+    {
+        return $this->subscription?->plan?->name;
+    }
+
     public function getTotalAttribute(): string
     {
         return number_format($this->amount + $this->tax, 2);

@@ -12364,6 +12364,345 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "Subscriptions & Payments",
+            "item": [
+                {
+                    "name": "GET Subscription Plans",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/subscription-plans",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "subscription-plans"
+                            ]
+                        },
+                        "description": "Active subscription plans available to purchase, ordered by price. Each plan is flagged is_current against the authenticated user's active subscription."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/subscription-plans",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "subscription-plans"
+                                    ]
+                                },
+                                "description": "Active subscription plans available to purchase, ordered by price. Each plan is flagged is_current against the authenticated user's active subscription."
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Subscription plans fetched successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"name\": \"Starter\",\n            \"slug\": \"starter\",\n            \"billing_cycle\": \"monthly\",\n            \"price\": \"0.00\",\n            \"formatted_price\": \"Free\",\n            \"max_posts_per_day\": 5,\n            \"max_matches_per_day\": 5,\n            \"max_ai_requests_per_day\": 10,\n            \"is_current\": true\n        },\n        {\n            \"id\": 2,\n            \"name\": \"Plus\",\n            \"slug\": \"plus\",\n            \"billing_cycle\": \"monthly\",\n            \"price\": \"9.99\",\n            \"formatted_price\": \"$9.99/Month\",\n            \"max_posts_per_day\": 10,\n            \"max_matches_per_day\": 10,\n            \"max_ai_requests_per_day\": 30,\n            \"is_current\": false\n        }\n    ],\n    \"code\": 200\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "POST Subscribe to Plan",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/subscriptions/{{plan_id}}/subscribe",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "subscriptions",
+                                "{{plan_id}}",
+                                "subscribe"
+                            ]
+                        },
+                        "description": "Subscribe the authenticated user to a plan (mock payment, no gateway call). Cancels any existing active subscription first. Free plans (price 0) create no Payment row."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/subscriptions/{{plan_id}}/subscribe",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "subscriptions",
+                                        "{{plan_id}}",
+                                        "subscribe"
+                                    ]
+                                },
+                                "description": "Subscribe the authenticated user to a plan (mock payment, no gateway call). Cancels any existing active subscription first. Free plans (price 0) create no Payment row."
+                            },
+                            "status": "Created",
+                            "code": 201,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Subscribed successfully\",\n    \"data\": {\n        \"subscription\": {\n            \"id\": 12,\n            \"plan_id\": 2,\n            \"plan_name\": \"Plus\",\n            \"billing_cycle\": \"monthly\",\n            \"status\": \"active\",\n            \"start_date\": \"2026-07-18T10:00:00.000000Z\",\n            \"end_date\": \"2026-08-18T10:00:00.000000Z\"\n        },\n        \"payment\": {\n            \"id\": 35,\n            \"formatted_id\": \"#ID-000035\",\n            \"plan_name\": \"Plus\",\n            \"billing_cycle\": \"monthly\",\n            \"amount\": \"9.99\",\n            \"tax\": \"0.00\",\n            \"total\": \"9.99\",\n            \"currency\": \"usd\",\n            \"status\": \"paid\",\n            \"status_label\": \"Successful\",\n            \"payment_method\": \"wallet\",\n            \"invoice_url\": null,\n            \"receipt_url\": null,\n            \"paid_at\": \"2026-07-18T10:00:00.000000Z\",\n            \"created_at\": \"2026-07-18T10:00:00.000000Z\"\n        }\n    },\n    \"code\": 201\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "GET User Payments",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/user-payments?search={{search}}&per_page={{per_page}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "user-payments"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "{{search}}"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                }
+                            ]
+                        },
+                        "description": "Paginated payment history for the authenticated user. search matches payment ID or subscription plan name."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/user-payments?search={{search}}&per_page={{per_page}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user-payments"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "search",
+                                            "value": "{{search}}"
+                                        },
+                                        {
+                                            "key": "per_page",
+                                            "value": "{{per_page}}"
+                                        }
+                                    ]
+                                },
+                                "description": "Paginated payment history for the authenticated user. search matches payment ID or subscription plan name."
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Payment history fetched successfully\",\n    \"data\": {\n        \"payments\": [\n            {\n                \"id\": 35,\n                \"formatted_id\": \"#ID-000035\",\n                \"plan_name\": \"Premium\",\n                \"billing_cycle\": \"monthly\",\n                \"amount\": \"59.99\",\n                \"tax\": \"0.00\",\n                \"total\": \"59.99\",\n                \"currency\": \"usd\",\n                \"status\": \"paid\",\n                \"status_label\": \"Successful\",\n                \"payment_method\": \"wallet\",\n                \"invoice_url\": null,\n                \"receipt_url\": null,\n                \"paid_at\": \"2026-07-18T10:00:00.000000Z\",\n                \"created_at\": \"2026-07-18T10:00:00.000000Z\"\n            }\n        ],\n        \"pagination\": {\n            \"current_page\": 1,\n            \"per_page\": 15,\n            \"total\": 1,\n            \"last_page\": 1\n        }\n    },\n    \"code\": 200\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "GET User Payment Detail",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/user-payments/{{payment_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "user-payments",
+                                "{{payment_id}}"
+                            ]
+                        },
+                        "description": "A single payment's full detail (the \"view\" icon on the Payments page). 404s if the payment does not belong to the authenticated user."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/user-payments/{{payment_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "user-payments",
+                                        "{{payment_id}}"
+                                    ]
+                                },
+                                "description": "A single payment's full detail (the \"view\" icon on the Payments page). 404s if the payment does not belong to the authenticated user."
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Payment fetched successfully\",\n    \"data\": {\n        \"id\": 35,\n        \"formatted_id\": \"#ID-000035\",\n        \"plan_name\": \"Premium\",\n        \"billing_cycle\": \"monthly\",\n        \"amount\": \"59.99\",\n        \"tax\": \"0.00\",\n        \"total\": \"59.99\",\n        \"currency\": \"usd\",\n        \"status\": \"paid\",\n        \"status_label\": \"Successful\",\n        \"payment_method\": \"wallet\",\n        \"invoice_url\": null,\n        \"receipt_url\": null,\n        \"paid_at\": \"2026-07-18T10:00:00.000000Z\",\n        \"created_at\": \"2026-07-18T10:00:00.000000Z\"\n    },\n    \"code\": 200\n}"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

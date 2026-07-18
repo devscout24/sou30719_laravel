@@ -12,6 +12,7 @@ use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\PolicyController;
 use App\Http\Controllers\API\PostController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\API\SubscriptionController;
 use App\Http\Controllers\API\UserFeedTopicController;
 use App\Http\Controllers\API\UserProfileViewController;
 use App\Http\Controllers\API\WorkspaceController;
@@ -195,6 +196,14 @@ Route::middleware('auth:api')->group(function () {
 
     // "All Friend" for chat search reuses the existing connected-friends list.
     Route::get('/chat/friends', [FriendController::class, 'connected']);
+
+    // ── Subscriptions & Payments ──────────────────────────────────────────────
+    Route::controller(SubscriptionController::class)->group(function () {
+        Route::get('/subscription-plans', 'plans');
+        Route::post('/subscriptions/{plan}/subscribe', 'subscribe');
+        Route::get('/user-payments', 'payments');
+        Route::get('/user-payments/{payment}', 'payment');
+    });
 
     // ── Admin: AI-generated posts ─────────────────────────────────────────────
     Route::controller(AdminAiPostController::class)->middleware('admin')->group(function () {
