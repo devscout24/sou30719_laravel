@@ -270,13 +270,13 @@ class WorkspaceConversationService
      */
     protected function handleDetailsCollection(AiConversation $conversation, ?string $text): void
     {
+        if (filled($text)) {
+            $conversation->update(['description' => trim($text)]);
+        }
+
         if ($conversation->hasImages()) {
             $this->curateNow($conversation);
             return;
-        }
-
-        if (filled($text)) {
-            $conversation->update(['description' => trim($text)]);
         }
 
         $this->storeReply($conversation, self::MSG_STILL_NEED_IMAGE);
