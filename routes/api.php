@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AdminAiPostController;
+use App\Http\Controllers\API\AiSuggestedPromptController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BlockController;
 use App\Http\Controllers\API\ChatController;
@@ -156,6 +157,12 @@ Route::middleware('auth:api')->group(function () {
     // ── AI Feed Search ────────────────────────────────────────────────────────
     Route::controller(FeedSearchController::class)->group(function () {
         Route::post('/feed/ai-search', 'search');
+        Route::post('/feed/ai-chat', 'chat');
+    });
+
+    // ── AI Suggested Prompts: starter chips for AI chat empty states ──────────
+    Route::controller(AiSuggestedPromptController::class)->group(function () {
+        Route::get('/ai/suggested-prompts', 'index');
     });
 
     // ── Friends: Connected & Curate ──────────────────────────────────────────

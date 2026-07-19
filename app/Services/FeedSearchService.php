@@ -5,13 +5,16 @@ namespace App\Services;
 use App\Exceptions\AIServiceException;
 use App\Models\Post;
 use App\Models\UserBlock;
+use App\Services\AI\FeedSearchIntentClassifierService;
 use App\Services\AI\OpenAIService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class FeedSearchService
 {
-    public function __construct(protected OpenAIService $openAI)
-    {
+    public function __construct(
+        protected OpenAIService $openAI,
+        protected FeedSearchIntentClassifierService $intentClassifier,
+    ) {
     }
 
     /**
@@ -20,8 +23,36 @@ class FeedSearchService
      */
     public function search(string $prompt, int $userId, int $perPage = 15): LengthAwarePaginator
     {
-        $keywords = $this->extractKeywords($prompt);
+        return $this->queryPosts($this->extractKeywords($prompt), $userId, $perPage);
+    }
 
+    /**
+     * Conversational entry point: classify the message as small talk, an unclear
+     * request, or a concrete search, and only run the feed query for the latter.
+     *
+     * @param  array<int, array{role: string, content: string}>  $history  prior turns, oldest first
+     * @return array{intent: string, reply: string, posts: ?LengthAwarePaginator}
+     */
+    public function chat(string $message, int $userId, array $history = [], int $perPage = 15): array
+    {
+        $classification = $this->intentClassifier->classify($message, $history);
+
+        $posts = $classification['intent'] === 'search'
+            ? $this->queryPosts($classification['keywords'], $userId, $perPage)
+            : null;
+
+        return [
+            'intent' => $classification['intent'],
+            'reply'  => $classification['reply'],
+            'posts'  => $posts,
+        ];
+    }
+
+    /**
+     * @param  string[]  $keywords
+     */
+    protected function queryPosts(array $keywords, int $userId, int $perPage): LengthAwarePaginator
+    {
         $blockedIds = UserBlock::where('user_id', $userId)
             ->orWhere('blocked_user_id', $userId)
             ->get()
