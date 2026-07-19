@@ -244,6 +244,7 @@ class WorkspaceConversationService
         }
 
         if (blank($text)) {
+            $this->storeReply($conversation, self::MSG_SOCIAL_OPENING);
             return;
         }
 
@@ -260,7 +261,7 @@ class WorkspaceConversationService
 
         $conversation->update(['topic' => $result['topic'], 'topic_clarify_attempts' => null]);
 
-        $reply = $this->socialCollector->askForDetails($result['topic'], $this->recentHistory($conversation));
+        $reply = $this->socialCollector->askForDetails($result['topic']);
         $this->storeReply($conversation, $reply);
     }
 
