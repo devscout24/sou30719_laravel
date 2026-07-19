@@ -17,6 +17,8 @@ class AiConversation extends Model
         'status',
         'topic',
         'topic_clarify_attempts',
+        'match_gender',
+        'match_criteria',
         'description',
         'short_description',
         'image_description',
@@ -109,6 +111,11 @@ class AiConversation extends Model
     public function isAwaitingMatchGender(): bool
     {
         return $this->status === 'awaiting_match_gender';
+    }
+
+    public function isAwaitingMatchCriteria(): bool
+    {
+        return $this->status === 'awaiting_match_criteria';
     }
 
     public function isCompleted(): bool
