@@ -15,7 +15,7 @@ class AiSuggestedPromptController extends Controller
      * Starter chips shown before the user's first message on an AI chat screen
      * (distinct from "pills", which are in-conversation reply options).
      *
-     * ?context=feed_search            -> for POST /feed/ai-search and /feed/ai-chat
+     * ?context=feed_search            -> for POST /feed/ai-chat
      * ?context=workspace_conversation -> for POST /conversations (+ /messages)
      * ?workspace=market_place         -> (workspace_conversation only) also include
      *                                     prompts scoped to that workspace (by slug)

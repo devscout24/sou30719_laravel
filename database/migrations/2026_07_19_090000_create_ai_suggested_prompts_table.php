@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
 
             // Which AI chat surface this suggestion belongs to: feed_search
-            // (covers /feed/ai-search and /feed/ai-chat) or workspace_conversation
+            // (/feed/ai-chat) or workspace_conversation
             // (the /conversations post/ad/event creation flow).
             $table->string('context');
 

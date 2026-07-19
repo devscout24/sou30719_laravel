@@ -2,28 +2,16 @@
 
 namespace App\Services;
 
-use App\Exceptions\AIServiceException;
 use App\Models\Post;
 use App\Models\UserBlock;
 use App\Services\AI\FeedSearchIntentClassifierService;
-use App\Services\AI\OpenAIService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class FeedSearchService
 {
     public function __construct(
-        protected OpenAIService $openAI,
         protected FeedSearchIntentClassifierService $intentClassifier,
     ) {
-    }
-
-    /**
-     * Extract keywords from the user's natural-language prompt using AI,
-     * then search posts by those keywords across tags, topic, title, and descriptions.
-     */
-    public function search(string $prompt, int $userId, int $perPage = 15): LengthAwarePaginator
-    {
-        return $this->queryPosts($this->extractKeywords($prompt), $userId, $perPage);
     }
 
     /**
@@ -87,45 +75,5 @@ class FeedSearchService
         }
 
         return $query->latest('published_at')->paginate($perPage);
-    }
-
-    /**
-     * @return string[]
-     */
-    protected function extractKeywords(string $prompt): array
-    {
-        try {
-            $reply = $this->openAI->chat([
-                ['role' => 'system', 'content' => $this->systemPrompt()],
-                ['role' => 'user', 'content' => $prompt],
-            ], jsonMode: true);
-
-            $decoded = json_decode($reply, true);
-
-            return array_values(array_filter(
-                array_map('trim', (array) ($decoded['keywords'] ?? []))
-            ));
-        } catch (AIServiceException) {
-            // Fall back to a simple tokenisation so search still works
-            return array_values(array_filter(
-                array_map('trim', explode(' ', $prompt))
-            ));
-        }
-    }
-
-    protected function systemPrompt(): string
-    {
-        return <<<'TEXT'
-            You are a search-keyword extractor for a social media platform.
-            Given a user's natural-language search query, extract the most relevant search keywords or short phrases.
-
-            Respond with ONLY strict JSON (no markdown, no commentary) in exactly this shape:
-            {"keywords": ["keyword1", "keyword2", "keyword3"]}
-
-            Rules:
-            - Extract 3-10 meaningful lowercase keywords or short phrases.
-            - Focus on nouns, topics, activities, places, or content themes.
-            - Remove filler words (e.g. "show me", "I want to see", "find posts about").
-            TEXT;
     }
 }

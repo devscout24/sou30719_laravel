@@ -8549,155 +8549,6 @@
             "name": "AI Feed Search",
             "item": [
                 {
-                    "name": "POST AI Feed Search",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"prompt\": \"Show me AI posts about Laravel and backend development.\",\n    \"per_page\": 15\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/feed/ai-search",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "feed",
-                                "ai-search"
-                            ]
-                        },
-                        "description": "Search published public posts using a natural language prompt. AI extracts keywords and returns matching posts."
-                    },
-                    "response": [
-                        {
-                            "name": "Success",
-                            "originalRequest": {
-                                "auth": {
-                                    "type": "bearer",
-                                    "bearer": [
-                                        {
-                                            "key": "token",
-                                            "value": "{{token}}",
-                                            "type": "string"
-                                        }
-                                    ]
-                                },
-                                "method": "POST",
-                                "header": [
-                                    {
-                                        "key": "Content-Type",
-                                        "value": "application/json"
-                                    }
-                                ],
-                                "body": {
-                                    "mode": "raw",
-                                    "raw": "{\n    \"prompt\": \"Show me AI posts about Laravel and backend development.\",\n    \"per_page\": 15\n}",
-                                    "options": {
-                                        "raw": {
-                                            "language": "json"
-                                        }
-                                    }
-                                },
-                                "url": {
-                                    "raw": "{{base_url}}/feed/ai-search",
-                                    "host": [
-                                        "{{base_url}}"
-                                    ],
-                                    "path": [
-                                        "feed",
-                                        "ai-search"
-                                    ]
-                                },
-                                "description": "Search published public posts using a natural language prompt. AI extracts keywords and returns matching posts."
-                            },
-                            "status": "OK",
-                            "code": 200,
-                            "_postman_previewlanguage": "json",
-                            "header": [
-                                {
-                                    "key": "Content-Type",
-                                    "value": "application/json"
-                                }
-                            ],
-                            "cookie": [],
-                            "body": "{\n    \"status\": true,\n    \"message\": \"Search results fetched successfully\",\n    \"data\": {\n        \"posts\": [\n            {\n                \"id\": 12,\n                \"slug\": \"a-walk-among-the-trees-x7k2p9\",\n                \"workspace\": \"social_post\",\n                \"author\": {\n                    \"id\": 1,\n                    \"name\": \"John Doe\",\n                    \"avatar\": \"http://localhost/uploads/avatar/avatar_1.png\"\n                },\n                \"type\": \"regular\",\n                \"created_by\": \"user\",\n                \"topic\": \"A walk among the trees\",\n                \"title\": null,\n                \"description\": \"Spent the morning walking through the pine forest near the lake. Highly recommend it if you need to clear your head.\",\n                \"short_description\": \"A peaceful morning walk through the pine forest.\",\n                \"image_description\": \"Sunlight through pine trees on a forest trail\",\n                \"tags\": [\n                    \"nature\",\n                    \"trees\",\n                    \"wellness\"\n                ],\n                \"images\": [\n                    \"http://localhost/storage/uploads/posts/img1.jpg\",\n                    \"http://localhost/storage/uploads/posts/img2.jpg\"\n                ],\n                \"event_date\": null,\n                \"event_location\": null,\n                \"price\": null,\n                \"location\": null,\n                \"category\": null,\n                \"status\": \"published\",\n                \"total_likes\": 14,\n                \"total_shares\": 2,\n                \"is_liked\": false,\n                \"published_at\": \"2026-07-07T09:15:00.000000Z\",\n                \"created_at\": \"2026-07-07T09:15:00.000000Z\"\n            }\n        ],\n        \"pagination\": {\n            \"current_page\": 1,\n            \"per_page\": 15,\n            \"total\": 1,\n            \"last_page\": 1\n        }\n    },\n    \"code\": 200\n}"
-                        },
-                        {
-                            "name": "Validation Error - Prompt Too Short",
-                            "originalRequest": {
-                                "auth": {
-                                    "type": "bearer",
-                                    "bearer": [
-                                        {
-                                            "key": "token",
-                                            "value": "{{token}}",
-                                            "type": "string"
-                                        }
-                                    ]
-                                },
-                                "method": "POST",
-                                "header": [
-                                    {
-                                        "key": "Content-Type",
-                                        "value": "application/json"
-                                    }
-                                ],
-                                "body": {
-                                    "mode": "raw",
-                                    "raw": "{\n    \"prompt\": \"ai\"\n}",
-                                    "options": {
-                                        "raw": {
-                                            "language": "json"
-                                        }
-                                    }
-                                },
-                                "url": {
-                                    "raw": "{{base_url}}/feed/ai-search",
-                                    "host": [
-                                        "{{base_url}}"
-                                    ],
-                                    "path": [
-                                        "feed",
-                                        "ai-search"
-                                    ]
-                                }
-                            },
-                            "status": "Unprocessable Entity",
-                            "code": 422,
-                            "_postman_previewlanguage": "json",
-                            "header": [
-                                {
-                                    "key": "Content-Type",
-                                    "value": "application/json"
-                                }
-                            ],
-                            "cookie": [],
-                            "body": "{\n    \"status\": false,\n    \"message\": \"Validation failed\",\n    \"data\": {\n        \"prompt\": [\n            \"The prompt field must be at least 3 characters.\"\n        ]\n    },\n    \"code\": 422\n}"
-                        }
-                    ]
-                },
-                {
                     "name": "POST AI Feed Search Chat",
                     "request": {
                         "auth": {
@@ -9149,6 +9000,94 @@
         {
             "name": "User Block",
             "item": [
+                {
+                    "name": "GET Blocked Users",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/friends/blocked?per_page={{per_page}}&page={{page}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "friends",
+                                "blocked"
+                            ],
+                            "query": [
+                                {
+                                    "key": "per_page",
+                                    "value": "{{per_page}}"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "{{page}}"
+                                }
+                            ]
+                        },
+                        "description": "Paginated list of users the current user has blocked."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/friends/blocked?per_page={{per_page}}&page={{page}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "friends",
+                                        "blocked"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "per_page",
+                                            "value": "{{per_page}}"
+                                        },
+                                        {
+                                            "key": "page",
+                                            "value": "{{page}}"
+                                        }
+                                    ]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Blocked users fetched successfully\",\n    \"data\": {\n        \"blocked\": [\n            {\n                \"id\": 5,\n                \"name\": \"Jane Smith\",\n                \"username\": \"janesmith\",\n                \"avatar\": \"http://localhost/uploads/avatar/avatar_5.png\",\n                \"date_blocked\": \"2026-07-10T14:22:00.000000Z\"\n            }\n        ],\n        \"pagination\": {\n            \"current_page\": 1,\n            \"per_page\": 15,\n            \"total\": 1,\n            \"last_page\": 1\n        }\n    },\n    \"code\": 200\n}"
+                        }
+                    ]
+                },
                 {
                     "name": "POST Block User",
                     "request": {

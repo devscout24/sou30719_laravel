@@ -14,7 +14,7 @@ class AiSuggestedPromptSeeder extends Seeder
 
         $prompts = [
             // Shown before the user types anything on the AI Feed Search screen
-            // (covers both POST /feed/ai-search and POST /feed/ai-chat).
+            // (POST /feed/ai-chat).
             ['context' => 'feed_search', 'label' => 'Hiking trips', 'prompt' => 'Find posts about hiking trips', 'sort_order' => 1],
             ['context' => 'feed_search', 'label' => 'Weekend events', 'prompt' => "Show me events happening this weekend", 'sort_order' => 2],
             ['context' => 'feed_search', 'label' => 'Marketplace deals', 'prompt' => 'Any good deals on the marketplace?', 'sort_order' => 3],

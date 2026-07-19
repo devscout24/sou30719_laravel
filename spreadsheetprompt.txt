@@ -1,0 +1,92 @@
+Create a spreadsheet titled "Admin Panel — Workflow Stages & Status Pills".
+
+Build one table with these exact columns, in this order:
+A: Module
+B: Stage # (leave blank if the module has no workflow)
+C: Workflow Stage (internal value)
+D: Pill Label (what the user actually sees)
+E: Pill Color
+F: Notes
+
+Fill in one row per stage, in the order given below. Where a module has multiple stages, group its rows together and only put the module name on the first row of that group (merge or leave the rest blank — whichever is easier in Sheets). Color the "Pill Color" cell's background using the named color so it visually matches the badge (e.g. a "success" row gets a light green fill, "warning" gets light yellow/amber, "danger" gets light red, "secondary"/"purple"/"info"/"primary" get their normal Bootstrap-ish shades). Modules with no workflow should get a single row with Stage/Stage Value/Pill Label/Pill Color left blank and Notes = "No workflow — static/settings page".
+
+Data:
+
+Module: User Management
+1. active | Active | success
+2. inactive | Inactive | warning
+3. banned | Banned | danger
+Notes: also has a separate, non-workflow "Verified/Unverified" badge (verified=success, unverified=secondary) — not a stage, just an email-verification flag.
+
+Module: Workspaces
+1. active | Active | success
+2. inactive | Inactive | warning
+
+Module: Support Tickets
+1. open | Pending | warning
+2. in_progress | On-going | purple
+3. resolved | Resolved | success
+4. closed | Closed | secondary
+
+Module: Transactions
+1. pending | Pending | warning
+2. paid | Successful | success
+3. failed | Failed | danger
+4. refunded | Refunded | secondary
+
+Module: Billing — Subscriptions
+1. active | Active | success
+2. cancelled | Cancelled | secondary
+3. expired | Expired | danger
+
+Module: Posts
+1. draft | Draft | warning
+2. published | Published | success
+3. removed | Removed (falls back to default grey pill) | secondary
+Notes: DB allows draft/published/removed but the admin panel's badge logic only explicitly maps draft and published — "removed" isn't mapped and falls through to a default grey pill instead of a dedicated color. Flag this as a possible gap to confirm with the dev.
+
+Module: Social Feed
+1. published | Active | primary
+2. removed | Inactive | secondary
+3. draft (and any other value) | shown as-is, title case | warning
+Notes: same underlying Post model/table as "Posts" above, but this view relabels the same statuses differently (published→"Active" instead of "Published"). Worth confirming with the client whether that's intentional.
+
+Module: Post Reports
+1. pending | Pending | danger
+2. reviewed | Reviewed | success
+3. dismissed | Dismissed | secondary
+
+Module: Dynamic Pages
+1. active (is_active=true) | Active | success
+2. inactive (is_active=false) | Inactive | warning
+Notes: this is a simple on/off flag, not a multi-stage workflow.
+
+Module: Subscription Plans
+1. active (is_active=true) | Active | success
+2. inactive (is_active=false) | Inactive | warning
+Notes: on/off flag, not a multi-stage workflow.
+
+Module: Feed Topics
+1. active (is_active=true) | Active | success
+2. inactive (is_active=false) | Inactive | warning
+Notes: on/off flag, not a multi-stage workflow.
+
+Module: Dashboard
+Notes: No workflow — static overview page, no status field.
+
+Module: System Settings
+Notes: No workflow — static configuration form, no status field.
+
+Module: Admin Profile
+Notes: No workflow — profile edit page, no status field.
+
+Module: Disclaimers / Policies
+Notes: No workflow — single editable content block, no status field.
+
+Module: Help & Support Messages
+Notes: No workflow — plain inbox (list/view/delete), no status field currently exists.
+
+Module: AI Agent Log (LLM Agent Log)
+Notes: Currently a static UI preview only — there is no real backend data or status/workflow behind it yet.
+
+After building the table, add a short summary section below it (2-3 sentences) noting: (1) which modules are simple on/off flags rather than true multi-stage workflows, (2) the Posts vs Social Feed labeling inconsistency for the same underlying data, and (3) that AI Agent Log has no real workflow yet since it isn't backed by data.

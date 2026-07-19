@@ -26,13 +26,17 @@ thing they can ask for. That's what got built.
 
 | API | Purpose | Suggested-prompt `context` |
 |---|---|---|
-| `POST /api/feed/ai-search` | One-shot: describe what you want, get matching posts back | `feed_search` |
 | `POST /api/feed/ai-chat` | Conversational feed search (greets, asks to clarify, or returns results) | `feed_search` |
 | `POST /api/conversations` + `POST /api/conversations/{slug}/messages` | AI-guided post/ad/event creation chat | `workspace_conversation` |
 
-`feed_search` and `workspace_conversation` share one endpoint, distinguished
-by a `context` query param, so the frontend calls the same API for every AI
-chat screen it has.
+`feed_search` and `workspace_conversation` share one endpoint (`/api/ai/suggested-prompts`),
+distinguished by a `context` query param, so the frontend calls the same API
+for every AI chat screen it has.
+
+> `POST /api/feed/ai-search` (one-shot keyword search) was removed — it
+> predated `/feed/ai-chat` and did the same job without the conversational
+> framing. Use `/feed/ai-chat` for all feed search; the `results` type on its
+> response carries the matching posts.
 
 ## 3. What was built
 
@@ -98,7 +102,6 @@ workspace (workspace-agnostic prompts always come back regardless).
 1. On opening any AI chat screen, call `GET /api/ai/suggested-prompts?context=<feed_search|workspace_conversation>` and render each item as a tappable chip using `label`.
 2. When the user taps a chip, send its `prompt` value as the normal message field to the existing chat endpoint — exactly as if the user had typed it:
    - Feed search chat → `POST /feed/ai-chat` body `{ "message": "<prompt>" }`
-   - Feed search (one-shot) → `POST /feed/ai-search` body `{ "prompt": "<prompt>" }`
    - Conversation → `POST /conversations/{slug}/messages` body `{ "message": "<prompt>" }`
 3. No new "pill" handling is needed on the frontend for this — it's just pre-filling/sending the existing message field. Pills (mid-conversation options) keep working exactly as before, untouched.
 

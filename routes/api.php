@@ -156,7 +156,6 @@ Route::middleware('auth:api')->group(function () {
 
     // ── AI Feed Search ────────────────────────────────────────────────────────
     Route::controller(FeedSearchController::class)->group(function () {
-        Route::post('/feed/ai-search', 'search');
         Route::post('/feed/ai-chat', 'chat');
     });
 
