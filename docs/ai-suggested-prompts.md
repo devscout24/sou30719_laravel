@@ -52,7 +52,7 @@ chat screen it has.
 GET /api/ai/suggested-prompts
 GET /api/ai/suggested-prompts?context=feed_search
 GET /api/ai/suggested-prompts?context=workspace_conversation
-GET /api/ai/suggested-prompts?context=workspace_conversation&workspace_id=7
+GET /api/ai/suggested-prompts?context=workspace_conversation&workspace=market_place
 ```
 
 Auth: same `auth:api` (JWT) middleware as every other endpoint in this group.
@@ -64,11 +64,11 @@ Auth: same `auth:api` (JWT) middleware as every other endpoint in this group.
   "message": "Suggested prompts fetched successfully",
   "data": {
     "feed_search": [
-      { "id": 1, "label": "Hiking trips", "prompt": "Find posts about hiking trips", "workspace_id": null }
+      { "id": 1, "label": "Hiking trips", "prompt": "Find posts about hiking trips", "workspace_slug": null }
     ],
     "workspace_conversation": [
-      { "id": 6, "label": "Share a post", "prompt": "I want to share photos from my trip", "workspace_id": null },
-      { "id": 8, "label": "Sell something", "prompt": "I want to sell my old bicycle", "workspace_id": 7 }
+      { "id": 6, "label": "Share a post", "prompt": "I want to share photos from my trip", "workspace_slug": null },
+      { "id": 8, "label": "Sell something", "prompt": "I want to sell my old bicycle", "workspace_slug": "market_place" }
     ]
   },
   "code": 200
@@ -82,16 +82,16 @@ any single chat screen):
   "status": true,
   "message": "Suggested prompts fetched successfully",
   "data": [
-    { "id": 1, "label": "Hiking trips", "prompt": "Find posts about hiking trips", "workspace_id": null },
-    { "id": 2, "label": "Weekend events", "prompt": "Show me events happening this weekend", "workspace_id": null }
+    { "id": 1, "label": "Hiking trips", "prompt": "Find posts about hiking trips", "workspace_slug": null },
+    { "id": 2, "label": "Weekend events", "prompt": "Show me events happening this weekend", "workspace_slug": null }
   ],
   "code": 200
 }
 ```
 
-Add `workspace_id` for `workspace_conversation` to also include prompts
-scoped to that specific workspace (workspace-agnostic prompts always come
-back regardless).
+Add `workspace=<slug>` (e.g. `market_place`, see `Workspace::SLUG_*` constants)
+for `workspace_conversation` to also include prompts scoped to that specific
+workspace (workspace-agnostic prompts always come back regardless).
 
 ## 4. How the frontend should use it
 

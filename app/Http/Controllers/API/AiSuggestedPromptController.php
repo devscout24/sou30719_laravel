@@ -17,21 +17,22 @@ class AiSuggestedPromptController extends Controller
      *
      * ?context=feed_search            -> for POST /feed/ai-search and /feed/ai-chat
      * ?context=workspace_conversation -> for POST /conversations (+ /messages)
-     * ?workspace_id=1                 -> (workspace_conversation only) also include
-     *                                     prompts scoped to that workspace
+     * ?workspace=market_place         -> (workspace_conversation only) also include
+     *                                     prompts scoped to that workspace (by slug)
      * No ?context -> all prompts grouped by context.
      */
     public function index(Request $request)
     {
-        $query = AiSuggestedPrompt::query()->active()->orderBy('sort_order');
+        $query = AiSuggestedPrompt::query()->active()->with('workspace:id,slug')->orderBy('sort_order');
 
         if ($context = $request->query('context')) {
             $query->forContext($context);
         }
 
-        if ($workspaceId = $request->query('workspace_id')) {
-            $query->where(function ($q) use ($workspaceId) {
-                $q->whereNull('workspace_id')->orWhere('workspace_id', $workspaceId);
+        if ($workspaceSlug = $request->query('workspace')) {
+            $query->where(function ($q) use ($workspaceSlug) {
+                $q->whereNull('workspace_id')
+                    ->orWhereHas('workspace', fn ($w) => $w->where('slug', $workspaceSlug));
             });
         }
 
@@ -47,10 +48,10 @@ class AiSuggestedPromptController extends Controller
     protected function transform(AiSuggestedPrompt $prompt): array
     {
         return [
-            'id'           => $prompt->id,
-            'label'        => $prompt->label ?: $prompt->prompt,
-            'prompt'       => $prompt->prompt,
-            'workspace_id' => $prompt->workspace_id,
+            'id'             => $prompt->id,
+            'label'          => $prompt->label ?: $prompt->prompt,
+            'prompt'         => $prompt->prompt,
+            'workspace_slug' => $prompt->workspace?->slug,
         ];
     }
 }
