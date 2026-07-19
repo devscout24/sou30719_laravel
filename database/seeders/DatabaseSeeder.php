@@ -12,6 +12,7 @@ use Database\Seeders\WorkspaceSeeder;
 use Database\Seeders\PostSeeder;
 use Database\Seeders\ChatSeeder;
 use Database\Seeders\AiSuggestedPromptSeeder;
+use Database\Seeders\SubscriptionPlanSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -25,6 +26,7 @@ class DatabaseSeeder extends Seeder
             DynamicPageSeeder::class,
             WorkspaceSeeder::class,
             AiSuggestedPromptSeeder::class,
+            SubscriptionPlanSeeder::class,
             PostSeeder::class,
             ChatSeeder::class,
         ]);

@@ -18,7 +18,7 @@ class WorkspaceSeeder extends Seeder
             [
                 'title'        => 'Social Post',
                 'description'  => 'Share updates, connect with people, and stay part of what\'s happening.',
-                'prompt'       => 'I want to create a Post',
+                'prompt'       => 'Share a post',
                 'slug'         => Workspace::SLUG_SOCIAL_POST,
                 'is_supported' => true,
                 'status'       => 'active',
@@ -28,7 +28,7 @@ class WorkspaceSeeder extends Seeder
             [
                 'title'        => 'Matches',
                 'description'  => 'Tell AI Pal what you\'re looking for and get matched with people on your dating profile.',
-                'prompt'       => 'I want to find matches',
+                'prompt'       => 'Find a match',
                 'slug'         => Workspace::SLUG_MATCHES,
                 'is_supported' => true,
                 'status'       => 'active',
@@ -38,7 +38,7 @@ class WorkspaceSeeder extends Seeder
             [
                 'title'        => 'Market Place',
                 'description'  => 'Create a product or service advertisement post for the marketplace.',
-                'prompt'       => 'I want to create an advertisement',
+                'prompt'       => 'Sell something',
                 'slug'         => Workspace::SLUG_MARKET_PLACE,
                 'is_supported' => true,
                 'status'       => 'active',
@@ -48,7 +48,7 @@ class WorkspaceSeeder extends Seeder
             [
                 'title'        => 'Event',
                 'description'  => 'Create and share an event with your community.',
-                'prompt'       => 'I want to create an event',
+                'prompt'       => 'Create an event',
                 'slug'         => Workspace::SLUG_EVENT,
                 'is_supported' => false,
                 'status'       => 'active',
@@ -58,7 +58,7 @@ class WorkspaceSeeder extends Seeder
             [
                 'title'        => 'Interest Hub',
                 'description'  => 'Connect with people who share your interests.',
-                'prompt'       => 'I want to explore interest hub',
+                'prompt'       => '(You Suggest)',
                 'slug'         => Workspace::SLUG_INTEREST_HUB,
                 'is_supported' => false,
                 'status'       => 'active',
@@ -68,7 +68,7 @@ class WorkspaceSeeder extends Seeder
             [
                 'title'        => 'Personal Courier',
                 'description'  => 'Request a personal courier or delivery.',
-                'prompt'       => 'I want to request a personal courier',
+                'prompt'       => 'Request a courier',
                 'slug'         => Workspace::SLUG_PERSONAL_COURIER,
                 'is_supported' => false,
                 'status'       => 'active',
