@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Workspace;
 use App\Services\AI\PostCuratorService;
 use App\Services\AI\ReplyIntentClassifierService;
+use App\Services\AI\SocialPostCollectorService;
 use App\Services\AI\WorkspaceIntentClassifierService;
 use Illuminate\Support\Facades\DB;
 
@@ -26,10 +27,9 @@ class WorkspaceConversationService
 
     protected const MSG_SELECT_PROMPT = 'Select one of the optional prompts below';
     protected const MSG_UNDER_DEV = 'This feature is currently under development and will be available soon.';
-    protected const MSG_SOCIAL_GUIDANCE = 'Share your thoughts and experiences inside the chat interface and attach image(s) to proceed.';
-    protected const MSG_NEED_DESCRIPTION = 'Please provide a description for your post.';
-    protected const MSG_NEED_IMAGES = 'Please upload at least one image.';
-    protected const MSG_NEED_BOTH = 'Please provide a description and upload at least one image.';
+    protected const MSG_SOCIAL_OPENING = 'Hi! What would you like to post about today?';
+    protected const MSG_TOPIC_FALLBACK = "No worries — just share a photo of what you'd like to post, and I'll take it from there.";
+    protected const MSG_STILL_NEED_IMAGE = "Don't forget to share a photo so I can finish your post!";
     protected const MSG_PUBLISHED = 'Your post has been published successfully.';
     protected const MSG_DRAFT_DELETED = 'Draft deleted successfully.';
     protected const MSG_ASK_EDIT_INSTRUCTION = 'What would you like to change about your post?';
@@ -52,6 +52,7 @@ class WorkspaceConversationService
         protected PostCuratorService $curator,
         protected WorkspaceIntentClassifierService $classifier,
         protected ReplyIntentClassifierService $replyClassifier,
+        protected SocialPostCollectorService $socialCollector,
     ) {
     }
 
@@ -216,51 +217,110 @@ class WorkspaceConversationService
             return;
         }
 
-        $description = $conversation->description;
-        $images      = $conversation->images ?? [];
+        if (!empty($imagePaths)) {
+            $conversation->update(['images' => array_merge($conversation->images ?? [], $imagePaths)]);
+        }
+
+        if (blank($conversation->topic)) {
+            $this->handleTopicDiscovery($conversation, $text);
+            return;
+        }
+
+        $this->handleDetailsCollection($conversation, $text);
+    }
+
+    /**
+     * Phase 1: figure out what the user wants to post about. An uploaded image
+     * (with or without accompanying text) is content enough to skip straight to
+     * curation — vision fills in what words didn't. Otherwise classify the text;
+     * an unclear reply asks again (varied, AI-generated) up to 3 times, then
+     * pivots to asking directly for a photo instead of repeating the question.
+     */
+    protected function handleTopicDiscovery(AiConversation $conversation, ?string $text): void
+    {
+        if ($conversation->hasImages()) {
+            $this->curateFromImage($conversation, $text);
+            return;
+        }
+
+        if (blank($text)) {
+            return;
+        }
+
+        $result = $this->socialCollector->classifyTopic($text, $this->recentHistory($conversation));
+
+        if (blank($result['topic'])) {
+            $attempts = ($conversation->topic_clarify_attempts ?? 0) + 1;
+            $conversation->update(['topic_clarify_attempts' => $attempts]);
+
+            $reply = $attempts >= 3 ? self::MSG_TOPIC_FALLBACK : ($result['reply'] ?: self::MSG_TOPIC_FALLBACK);
+            $this->storeReply($conversation, $reply);
+            return;
+        }
+
+        $conversation->update(['topic' => $result['topic'], 'topic_clarify_attempts' => null]);
+
+        $reply = $this->socialCollector->askForDetails($result['topic'], $this->recentHistory($conversation));
+        $this->storeReply($conversation, $reply);
+    }
+
+    /**
+     * Phase 2: topic is known, waiting on a photo (description/elaboration is
+     * optional). Any text is stored as elaboration; once an image exists, curate.
+     */
+    protected function handleDetailsCollection(AiConversation $conversation, ?string $text): void
+    {
+        if ($conversation->hasImages()) {
+            $this->curateNow($conversation);
+            return;
+        }
 
         if (filled($text)) {
-            $description = trim($text);
+            $conversation->update(['description' => trim($text)]);
         }
 
-        if (!empty($imagePaths)) {
-            $images = array_merge($images, $imagePaths);
-        }
+        $this->storeReply($conversation, self::MSG_STILL_NEED_IMAGE);
+    }
 
-        // Preserve the user's original wording as image_description before AI polishes it
-        $imageDescription = filled($text) ? trim($text) : $conversation->image_description;
-
-        $conversation->update([
-            'description'       => $description,
-            'image_description' => $imageDescription,
-            'images'            => $images,
-        ]);
-
-        $hasDescription = $conversation->hasDescription();
-        $hasImages      = $conversation->hasImages();
-
-        if (!$hasDescription && !$hasImages) {
-            $this->storeReply($conversation, self::MSG_NEED_BOTH);
-            return;
-        }
-
-        if (!$hasDescription) {
-            $this->storeReply($conversation, self::MSG_NEED_DESCRIPTION);
-            return;
-        }
-
-        if (!$hasImages) {
-            $this->storeReply($conversation, self::MSG_NEED_IMAGES);
-            return;
-        }
-
+    /**
+     * Curate straight from an image (Phase 1 image-first path) — topic doesn't
+     * exist yet, so an empty description is fine; curate() leans on the image.
+     */
+    protected function curateFromImage(AiConversation $conversation, ?string $text): void
+    {
         try {
-            $result = $this->curator->curate($conversation->description, $conversation->images);
+            $result = $this->curator->curate($text ? trim($text) : '', $conversation->images);
         } catch (AIServiceException $e) {
             $this->storeReply($conversation, $e->getMessage());
             return;
         }
 
+        $this->finalizePost($conversation, $result);
+    }
+
+    /**
+     * Curate once topic + image are both already known (Phase 2 completion).
+     * Falls back to the bare topic as the description when the user never
+     * added elaboration text — vision carries the rest.
+     */
+    protected function curateNow(AiConversation $conversation): void
+    {
+        try {
+            $result = $this->curator->curate($conversation->description ?: $conversation->topic, $conversation->images);
+        } catch (AIServiceException $e) {
+            $this->storeReply($conversation, $e->getMessage());
+            return;
+        }
+
+        $this->finalizePost($conversation, $result);
+    }
+
+    /**
+     * Shared tail for both curation paths: persist the curated draft, narrate
+     * what the AI understood, then show the preview card and its pills.
+     */
+    protected function finalizePost(AiConversation $conversation, array $result): void
+    {
         $conversation->update([
             'topic'             => $result['topic'],
             'description'       => $result['description'],
@@ -268,6 +328,9 @@ class WorkspaceConversationService
             'tags'              => $result['tags'],
             'status'            => 'preview',
         ]);
+
+        $ack = $this->socialCollector->acknowledge($result['topic'], $result['short_description']);
+        $this->storeReply($conversation, $ack);
 
         $this->storePostPreview($conversation);
         $this->storePills($conversation, $this->previewPills());
@@ -743,7 +806,7 @@ class WorkspaceConversationService
     protected function guidanceFor(Workspace $workspace): string
     {
         return match ($workspace->slug) {
-            Workspace::SLUG_SOCIAL_POST   => self::MSG_SOCIAL_GUIDANCE,
+            Workspace::SLUG_SOCIAL_POST   => self::MSG_SOCIAL_OPENING,
             Workspace::SLUG_MARKET_PLACE  => self::MSG_MARKETPLACE_GUIDANCE,
             default                       => self::MSG_UNDER_DEV,
         };
