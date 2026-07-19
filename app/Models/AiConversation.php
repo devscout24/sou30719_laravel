@@ -16,6 +16,7 @@ class AiConversation extends Model
         'post_id',
         'status',
         'topic',
+        'topic_clarify_attempts',
         'description',
         'short_description',
         'image_description',
@@ -29,12 +30,13 @@ class AiConversation extends Model
     ];
 
     protected $casts = [
-        'status'               => 'string',
-        'images'               => 'array',
-        'tags'                 => 'array',
-        'ad_type'              => 'string',
-        'discount_percentage'  => 'decimal:2',
-        'show_sale_badge'      => 'boolean',
+        'status'                  => 'string',
+        'topic_clarify_attempts'  => 'integer',
+        'images'                  => 'array',
+        'tags'                    => 'array',
+        'ad_type'                 => 'string',
+        'discount_percentage'     => 'decimal:2',
+        'show_sale_badge'         => 'boolean',
     ];
 
     protected static function booted(): void
