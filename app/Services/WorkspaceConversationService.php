@@ -9,6 +9,7 @@ use App\Models\MatchRecommendation;
 use App\Models\Post;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Services\AI\MatchCriteriaService;
 use App\Services\AI\PostCuratorService;
 use App\Services\AI\ReplyIntentClassifierService;
 use App\Services\AI\SocialPostCollectorService;
@@ -53,6 +54,7 @@ class WorkspaceConversationService
         protected WorkspaceIntentClassifierService $classifier,
         protected ReplyIntentClassifierService $replyClassifier,
         protected SocialPostCollectorService $socialCollector,
+        protected MatchCriteriaService $matchCriteria,
     ) {
     }
 
@@ -115,6 +117,7 @@ class WorkspaceConversationService
             'idle'                      => $this->handleIdle($conversation, $text),
             'confirming_workspace'      => $this->handleConfirmingWorkspace($conversation, $text),
             'awaiting_match_gender'     => $this->handleAwaitingMatchGender($conversation, $text),
+            'awaiting_match_criteria'   => $this->handleAwaitingMatchCriteria($conversation, $text),
             'collecting'                => $this->handleCollecting($conversation, $text, $imagePaths, $extra),
             'preview'                   => $this->handlePreview($conversation, $text),
             'awaiting_edit_instruction' => $this->handleEditInstruction($conversation, $text),
@@ -149,7 +152,12 @@ class WorkspaceConversationService
             return;
         }
 
-        $conversation->update(['workspace_id' => $result['workspace']->id, 'status' => 'confirming_workspace']);
+        $conversation->update([
+            'workspace_id'   => $result['workspace']->id,
+            'status'         => 'confirming_workspace',
+            'match_gender'   => $result['match_gender'],
+            'match_criteria' => $result['match_criteria'],
+        ]);
 
         $this->storeReply(
             $conversation,
@@ -166,7 +174,7 @@ class WorkspaceConversationService
             $workspace = Workspace::find($conversation->workspace_id);
 
             if (!$workspace) {
-                $conversation->update(['workspace_id' => null, 'status' => 'idle']);
+                $conversation->update(['workspace_id' => null, 'status' => 'idle', 'match_gender' => null, 'match_criteria' => null]);
                 $this->storeReply($conversation, self::MSG_CLARIFY_INTENT);
                 $this->storePills($conversation, $this->activePrompts());
                 return;
@@ -176,7 +184,7 @@ class WorkspaceConversationService
             return;
         }
 
-        $conversation->update(['workspace_id' => null, 'status' => 'idle']);
+        $conversation->update(['workspace_id' => null, 'status' => 'idle', 'match_gender' => null, 'match_criteria' => null]);
 
         if ($decision === 'no') {
             $this->storeReply($conversation, self::MSG_CLARIFY_INTENT);
@@ -559,9 +567,22 @@ class WorkspaceConversationService
             return;
         }
 
-        $conversation->update(['workspace_id' => $workspace->id, 'status' => 'awaiting_match_gender']);
-        $this->storeReply($conversation, self::MSG_ASK_GENDER);
-        $this->storePills($conversation, $this->genderPills());
+        $conversation->update(['workspace_id' => $workspace->id]);
+
+        $gender = $conversation->match_gender ?: $user->datingPreference->interested_in;
+
+        if (!$gender) {
+            $conversation->update(['status' => 'awaiting_match_gender']);
+            $this->storeReply($conversation, self::MSG_ASK_GENDER);
+            $this->storePills($conversation, $this->genderPills());
+            return;
+        }
+
+        if (!$conversation->match_gender) {
+            $conversation->update(['match_gender' => $gender]);
+        }
+
+        $this->proceedWithGenderResolved($conversation, $gender);
     }
 
     protected function handleAwaitingMatchGender(AiConversation $conversation, ?string $text): void
@@ -574,6 +595,51 @@ class WorkspaceConversationService
             return;
         }
 
+        $conversation->update(['match_gender' => $gender]);
+
+        $this->proceedWithGenderResolved($conversation, $gender);
+    }
+
+    /**
+     * Gender is resolved (from the message, saved preference, or pills). If
+     * criteria was stated but is too vague to act on, ask once for specifics;
+     * otherwise (or after that one round) go straight to searching.
+     */
+    protected function proceedWithGenderResolved(AiConversation $conversation, string $gender): void
+    {
+        $criteria = $conversation->match_criteria;
+
+        if ($criteria && !$this->matchCriteria->isConcrete($criteria)) {
+            $conversation->update(['status' => 'awaiting_match_criteria']);
+            $this->storeReply(
+                $conversation,
+                sprintf('Could you be a bit more specific about "%s"? For example, an exact number or range would help.', $criteria)
+            );
+            return;
+        }
+
+        $this->searchMatches($conversation, $gender, $criteria);
+    }
+
+    /**
+     * One follow-up round only — matching-by-criteria is a ranking boost, not
+     * a hard gate, so proceed regardless of whether the reply is concrete now.
+     */
+    protected function handleAwaitingMatchCriteria(AiConversation $conversation, ?string $text): void
+    {
+        $criteria = filled($text) ? trim($text) : $conversation->match_criteria;
+
+        $conversation->update(['match_criteria' => $criteria]);
+
+        $this->searchMatches($conversation, $conversation->match_gender, $criteria);
+    }
+
+    /**
+     * Find candidates by gender, optionally rank them against free-text
+     * criteria, persist MatchRecommendation rows, and present the results.
+     */
+    protected function searchMatches(AiConversation $conversation, string $gender, ?string $criteria): void
+    {
         $candidates = $this->findMatchCandidates($conversation->user_id, $gender);
 
         if ($candidates->isEmpty()) {
@@ -582,19 +648,31 @@ class WorkspaceConversationService
             return;
         }
 
+        $rankings = $criteria ? $this->matchCriteria->rankCandidates($criteria, $candidates) : [];
+        $rankingsByUserId = collect($rankings)->keyBy('user_id');
+
         foreach ($candidates as $candidate) {
+            $ranking = $rankingsByUserId->get($candidate->id);
+
             MatchRecommendation::updateOrCreate(
                 ['user_id' => $conversation->user_id, 'recommended_user_id' => $candidate->id],
-                ['status' => 'pending']
+                [
+                    'status'              => 'pending',
+                    // compatibility_score is NOT NULL (schema default 0) — fall back to 0,
+                    // not null, when no ranking exists (no criteria was given).
+                    'compatibility_score' => $ranking['score'] ?? 0,
+                    'reason'              => $ranking['reason'] ?? null,
+                ]
             );
         }
 
         $conversation->update(['status' => 'completed']);
-        $this->storeMatchSuggestions($conversation, $candidates);
+        $this->storeMatchSuggestions($conversation, $candidates, $rankingsByUserId);
     }
 
     /**
-     * Users whose dating profile is complete, active, and matches the requested gender.
+     * Users whose dating profile is complete, active, and matches the requested
+     * gender. 'both' skips the dating_gender filter entirely (matches either).
      *
      * @return \Illuminate\Support\Collection<int, User>
      */
@@ -604,7 +682,11 @@ class WorkspaceConversationService
             ->where('id', '!=', $userId)
             ->where('status', 'active')
             ->whereHas('datingProfile', function ($query) use ($gender) {
-                $query->where('dating_gender', $gender)->where('is_active', true);
+                $query->where('is_active', true);
+
+                if ($gender !== 'both') {
+                    $query->where('dating_gender', $gender);
+                }
             })
             ->with(['datingProfile.images'])
             ->limit($limit)
@@ -696,20 +778,26 @@ class WorkspaceConversationService
      * Store suggested dating-profile matches (Matches workspace).
      *
      * @param  \Illuminate\Support\Collection<int, User>  $candidates
+     * @param  \Illuminate\Support\Collection<int, array{user_id: int, score: int, reason: string}>|null  $rankingsByUserId  keyed by user_id; null/empty when no criteria was given
      */
-    protected function storeMatchSuggestions(AiConversation $conversation, $candidates): AiMessage
+    protected function storeMatchSuggestions(AiConversation $conversation, $candidates, $rankingsByUserId = null): AiMessage
     {
-        $payload = $candidates->map(function (User $candidate) {
+        $rankingsByUserId = $rankingsByUserId ?? collect();
+
+        $payload = $candidates->map(function (User $candidate) use ($rankingsByUserId) {
             $profile = $candidate->datingProfile;
             $photo   = $profile?->images?->firstWhere('is_primary', true) ?? $profile?->images?->first();
+            $ranking = $rankingsByUserId->get($candidate->id);
 
             return [
-                'user_id'  => $candidate->id,
-                'name'     => $candidate->name,
-                'username' => $candidate->username,
-                'city'     => $profile?->dating_location ?? $profile?->city,
-                'about'    => $profile?->about ?? $profile?->about_me,
-                'photo'    => $photo ? ['path' => $photo->image_path] : null,
+                'user_id'             => $candidate->id,
+                'name'                => $candidate->name,
+                'username'            => $candidate->username,
+                'city'                => $profile?->dating_location ?? $profile?->city,
+                'about'               => $profile?->about ?? $profile?->about_me,
+                'photo'               => $photo ? ['path' => $photo->image_path] : null,
+                'compatibility_score' => $ranking['score'] ?? null,
+                'reason'              => $ranking['reason'] ?? null,
             ];
         })->values()->all();
 
