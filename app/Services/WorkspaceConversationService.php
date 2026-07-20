@@ -13,7 +13,6 @@ use App\Services\AI\MatchCriteriaService;
 use App\Services\AI\PostCuratorService;
 use App\Services\AI\ReplyIntentClassifierService;
 use App\Services\AI\SocialPostCollectorService;
-use App\Services\AI\WorkspaceIntentClassifierService;
 use Illuminate\Support\Facades\DB;
 
 class WorkspaceConversationService
@@ -21,8 +20,6 @@ class WorkspaceConversationService
     protected const PILL_APPROVE = 'Approve posting to the feed';
     protected const PILL_EDIT = 'Edit post';
     protected const PILL_DELETE = 'Delete post';
-    protected const PILL_CONFIRM_YES = "Yes, that's right";
-    protected const PILL_CONFIRM_NO = 'No, something else';
     protected const PILL_MALE = 'Male';
     protected const PILL_FEMALE = 'Female';
 
@@ -36,7 +33,6 @@ class WorkspaceConversationService
     protected const MSG_ASK_EDIT_INSTRUCTION = 'What would you like to change about your post?';
     protected const MSG_CONVERSATION_DONE = 'This conversation has already been completed. Start a new conversation to create another post.';
     protected const MSG_CHOOSE_OPTION = 'Please choose one of the options below.';
-    protected const MSG_CLARIFY_INTENT = "I couldn't quite tell what you're looking to do. Could you be more specific, or choose one of the options below?";
 
     protected const MSG_PROFILE_INCOMPLETE = 'Please complete your dating preference on your profile before we can find matches for you.';
     protected const MSG_ASK_GENDER = "What are you looking for — male or female?";
@@ -51,7 +47,6 @@ class WorkspaceConversationService
 
     public function __construct(
         protected PostCuratorService $curator,
-        protected WorkspaceIntentClassifierService $classifier,
         protected ReplyIntentClassifierService $replyClassifier,
         protected SocialPostCollectorService $socialCollector,
         protected MatchCriteriaService $matchCriteria,
@@ -115,7 +110,6 @@ class WorkspaceConversationService
 
         match ($conversation->status) {
             'idle'                      => $this->handleIdle($conversation, $text),
-            'confirming_workspace'      => $this->handleConfirmingWorkspace($conversation, $text),
             'awaiting_match_gender'     => $this->handleAwaitingMatchGender($conversation, $text),
             'awaiting_match_criteria'   => $this->handleAwaitingMatchCriteria($conversation, $text),
             'collecting'                => $this->handleCollecting($conversation, $text, $imagePaths, $extra),
@@ -129,6 +123,12 @@ class WorkspaceConversationService
 
     // ─── State Handlers (persistence only, no return payloads) ────────────────
 
+    /**
+     * Workspace selection is pill-only: an exact match against a workspace's
+     * prompt (what a pill click sends) assigns it directly, no confirmation
+     * round-trip. Anything else — blank text, or free text that doesn't match
+     * any pill — just re-shows the pill list. No AI call is made here.
+     */
     protected function handleIdle(AiConversation $conversation, ?string $text): void
     {
         $workspace = $this->matchWorkspaceExact($text);
@@ -138,62 +138,8 @@ class WorkspaceConversationService
             return;
         }
 
-        if (blank($text)) {
-            $this->storeReply($conversation, self::MSG_SELECT_PROMPT);
-            $this->storePills($conversation, $this->activePrompts());
-            return;
-        }
-
-        $result = $this->classifier->interpret($text, Workspace::active()->get(), $this->recentHistory($conversation));
-
-        if (!$result['workspace']) {
-            $this->storeReply($conversation, $result['reply']);
-            $this->storePills($conversation, $this->activePrompts());
-            return;
-        }
-
-        $conversation->update([
-            'workspace_id'   => $result['workspace']->id,
-            'status'         => 'confirming_workspace',
-            'match_gender'   => $result['match_gender'],
-            'match_criteria' => $result['match_criteria'],
-        ]);
-
-        $this->storeReply(
-            $conversation,
-            sprintf('It sounds like you want to: "%s" — is that right?', $result['workspace']->prompt)
-        );
-        $this->storePills($conversation, $this->confirmationPills());
-    }
-
-    protected function handleConfirmingWorkspace(AiConversation $conversation, ?string $text): void
-    {
-        $decision = $this->replyClassifier->classifyConfirmation((string) $text);
-
-        if ($decision === 'yes') {
-            $workspace = Workspace::find($conversation->workspace_id);
-
-            if (!$workspace) {
-                $conversation->update(['workspace_id' => null, 'status' => 'idle', 'match_gender' => null, 'match_criteria' => null]);
-                $this->storeReply($conversation, self::MSG_CLARIFY_INTENT);
-                $this->storePills($conversation, $this->activePrompts());
-                return;
-            }
-
-            $this->assignWorkspace($conversation, $workspace);
-            return;
-        }
-
-        $conversation->update(['workspace_id' => null, 'status' => 'idle', 'match_gender' => null, 'match_criteria' => null]);
-
-        if ($decision === 'no') {
-            $this->storeReply($conversation, self::MSG_CLARIFY_INTENT);
-            $this->storePills($conversation, $this->activePrompts());
-            return;
-        }
-
-        // Unclear reply — treat it as a fresh attempt to describe their intent.
-        $this->handleIdle($conversation, $text);
+        $this->storeReply($conversation, self::MSG_SELECT_PROMPT);
+        $this->storePills($conversation, $this->activePrompts());
     }
 
     protected function assignWorkspace(AiConversation $conversation, Workspace $workspace): void
@@ -876,11 +822,6 @@ class WorkspaceConversationService
     }
 
     // ─── Pill Helpers ────────────────────────────────────────────────────────
-
-    protected function confirmationPills(): array
-    {
-        return [self::PILL_CONFIRM_YES, self::PILL_CONFIRM_NO];
-    }
 
     protected function previewPills(): array
     {

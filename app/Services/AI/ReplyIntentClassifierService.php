@@ -7,9 +7,6 @@ use Illuminate\Support\Facades\Log;
 
 class ReplyIntentClassifierService
 {
-    protected const CONFIRM_WORDS = ['yes', 'yeah', 'yep', 'yup', 'sure', 'correct', 'confirm', 'ok', 'okay', 'affirmative', 'thats right'];
-    protected const DECLINE_WORDS = ['no', 'nope', 'nah', 'incorrect', 'wrong', 'negative', 'not right', 'thats wrong'];
-
     protected const APPROVE_WORDS = ['approve', 'publish', 'post it', 'looks good', 'good to go', 'proceed', 'looks great', 'ship it'];
     protected const EDIT_WORDS = ['edit', 'change', 'modify', 'update', 'revise', 'fix', 'tweak'];
     protected const DELETE_WORDS = ['delete', 'remove', 'cancel', 'discard', 'scrap'];
@@ -19,30 +16,6 @@ class ReplyIntentClassifierService
 
     public function __construct(protected OpenAIService $openai)
     {
-    }
-
-    /**
-     * Interpret a free-text reply to a yes/no confirmation question.
-     *
-     * @return 'yes'|'no'|null
-     */
-    public function classifyConfirmation(string $text): ?string
-    {
-        if (blank($text)) {
-            return null;
-        }
-
-        $words = $this->normalize($text);
-
-        if ($this->matchesAny($words, self::DECLINE_WORDS)) {
-            return 'no';
-        }
-
-        if ($this->matchesAny($words, self::CONFIRM_WORDS)) {
-            return 'yes';
-        }
-
-        return $this->aiClassify($text, ['yes', 'no']);
     }
 
     /**
