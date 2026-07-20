@@ -41,7 +41,10 @@ class WorkspaceEntryFlowTest extends TestCase
         $this->assertSame('idle', $conversation->status);
         $this->assertNull($conversation->workspace_id);
 
-        $lastPills = $conversation->messages()->where('type', 'pills')->latest('id')->first();
+        // messages() bakes in an ascending order (oldest-first, for transcript
+        // display); ->latest() can't override that (Eloquent orderBy calls
+        // append rather than replace), so grab the last element instead.
+        $lastPills = $conversation->messages()->where('type', 'pills')->get()->last();
         $this->assertNotNull($lastPills);
         $this->assertSame(['Share a post'], json_decode($lastPills->message, true));
     }
