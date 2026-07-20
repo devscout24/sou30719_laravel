@@ -62,10 +62,24 @@ class MatchCriteriaService
             $profile = $candidate->datingProfile;
 
             return [
-                'user_id' => $candidate->id,
-                'height'  => $profile?->height,
-                'about'   => $profile?->about ?? $profile?->about_me,
-                'hobbies' => $profile?->hobbies,
+                'user_id'            => $candidate->id,
+                'height'             => $profile?->height,
+                'occupation'         => $profile?->occupation,
+                'education'          => $profile?->education,
+                'lifestyle_habits'   => $profile?->lifestyle_habits,
+                'body_type'          => $profile?->body_type,
+                'ethnicity'          => $profile?->ethnicity,
+                'religion'           => $profile?->religious_beliefs ?? $profile?->religion,
+                'languages'          => $profile?->languages,
+                'location'           => $profile?->dating_location ?? $profile?->city,
+                'about'              => $profile?->about ?? $profile?->about_me,
+                'hobbies'            => $profile?->hobbies,
+                'personality_traits' => $profile?->personality_traits,
+                'pet_preference'     => $profile?->pet_preference,
+                'political_views'    => $profile?->political_views,
+                'family_plans'       => $profile?->family_plans,
+                'children_status'    => $profile?->children_status,
+                'relationship_goal'  => $profile?->relationship_goal,
             ];
         })->values()->all();
 
@@ -123,16 +137,26 @@ class MatchCriteriaService
             You help a dating app rank candidate profiles against a user's stated preference.
 
             You are given a JSON object with "criteria" (the user's stated preference, free text) and
-            "candidates" (an array of {user_id, height, about, hobbies} — any field may be null if unset).
+            "candidates" (an array of profile objects — any field may be null if unset). Each candidate
+            object has: user_id, height, occupation, education, lifestyle_habits, body_type, ethnicity,
+            religion, languages, location, about, hobbies, personality_traits, pet_preference,
+            political_views, family_plans, children_status, relationship_goal.
 
             Respond with ONLY strict JSON (no markdown, no commentary) in exactly this shape:
             {"rankings": [{"user_id": <int>, "score": <0-100 int>, "reason": "<short reason, 1 sentence>"}]}
 
             Rules:
             - Include every candidate you were given, even a poor fit (score them low, don't omit them).
-            - "score" reflects how well the candidate's available fields match the stated criteria.
-            - "reason" is a short, natural explanation of the score (e.g. "Height listed as 5'7\", matches your preference").
-            - If a candidate's relevant fields are null/unset, score conservatively around 50 (unknown, not a mismatch) and say so in "reason".
+            - Only judge candidates against dimensions the criteria actually mentions — ignore fields the
+              criteria says nothing about (e.g. if criteria only mentions height, don't penalize for religion).
+            - "score" reflects how many of the mentioned dimensions the candidate's available fields satisfy —
+              the more matched dimensions, the higher the score.
+            - If a candidate's data clearly contradicts a stated dimension (e.g. criteria says "non-smoker"
+              and lifestyle_habits says they smoke), score that dimension low.
+            - If a field relevant to a stated dimension is null/unset, score that dimension conservatively
+              around 50 (unknown, not a mismatch) rather than penalizing the candidate for missing data.
+            - "reason" is a short, natural explanation referencing the specific dimensions that drove the
+              score (e.g. "5'9\" matches your height preference, and their hobbies include hiking").
             TEXT;
     }
 }

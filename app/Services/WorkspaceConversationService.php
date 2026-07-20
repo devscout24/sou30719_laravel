@@ -41,7 +41,8 @@ class WorkspaceConversationService
     protected const MSG_PROFILE_INCOMPLETE = "You haven't completed your dating preference yet, so I can't use it to find matches. Please choose one of the options below instead, or complete your profile first.";
     protected const MSG_ASK_GENDER = 'Hello! What are you looking for?';
     protected const MSG_ASK_GENDER_AGAIN = "Sorry, I didn't catch that. Please choose one of the options below.";
-    protected const MSG_NO_MATCHES = 'No matching found. Please check back again later.';
+    protected const MSG_NO_MATCHES = "I couldn't find a strong match for that. Try adding more detail — things like height, occupation, education, lifestyle, body type, ethnicity, religion, languages, location, interests, personality, pet preference, political views, family plans, or relationship goals — and I'll search again.";
+    protected const MIN_MATCH_SCORE = 40;
 
     protected const MSG_MARKETPLACE_GUIDANCE = 'Let\'s create your advertisement. Please provide the product/service details through the form — image, type, category, link, and discount — then send it over.';
     protected const MSG_AD_NEED_IMAGE = 'Please upload at least one image for your listing.';
@@ -609,19 +610,38 @@ class WorkspaceConversationService
     /**
      * Find candidates by gender, optionally rank them against free-text
      * criteria, persist MatchRecommendation rows, and present the results.
+     * A "no matches" outcome (no candidates at all, or none clear the
+     * quality bar once criteria is given) never dead-ends the conversation
+     * — it returns to awaiting_match_criteria so the user can describe
+     * something else and search again.
      */
     protected function searchMatches(AiConversation $conversation, string $gender, ?string $criteria): void
     {
         $candidates = $this->findMatchCandidates($conversation->user_id, $gender);
 
         if ($candidates->isEmpty()) {
-            $conversation->update(['status' => 'completed']);
+            $conversation->update(['status' => 'awaiting_match_criteria']);
             $this->storeReply($conversation, self::MSG_NO_MATCHES);
             return;
         }
 
         $rankings = $criteria ? $this->matchCriteria->rankCandidates($criteria, $candidates) : [];
         $rankingsByUserId = collect($rankings)->keyBy('user_id');
+
+        // Only quality-filter when criteria was actually given — a plain
+        // gender-only search (no criteria) has nothing to filter against,
+        // so it keeps showing every candidate, same as before.
+        if ($criteria) {
+            $candidates = $candidates->filter(
+                fn ($candidate) => ($rankingsByUserId->get($candidate->id)['score'] ?? 0) >= self::MIN_MATCH_SCORE
+            )->values();
+
+            if ($candidates->isEmpty()) {
+                $conversation->update(['status' => 'awaiting_match_criteria']);
+                $this->storeReply($conversation, self::MSG_NO_MATCHES);
+                return;
+            }
+        }
 
         foreach ($candidates as $candidate) {
             $ranking = $rankingsByUserId->get($candidate->id);

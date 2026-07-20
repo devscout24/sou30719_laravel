@@ -126,10 +126,15 @@ class MatchesFlowTest extends TestCase
                 ]);
 
             // Second, still-vague reply must NOT trigger a second assessCriteria()
-            // call — only one follow-up round, then proceed regardless.
+            // call — only one follow-up round, then proceed regardless. Score
+            // above MIN_MATCH_SCORE so the candidate clears the quality filter.
             $mock->shouldReceive('rankCandidates')
                 ->once()
-                ->andReturn([]);
+                ->andReturnUsing(fn ($criteria, $candidates) => $candidates->map(fn ($c) => [
+                    'user_id' => $c->id,
+                    'score'   => 60,
+                    'reason'  => 'Reasonable overlap',
+                ])->values()->all());
         });
 
         [$service, $conversation] = $this->enterMatchesWorkspace($user);
@@ -173,7 +178,11 @@ class MatchesFlowTest extends TestCase
             $mock->shouldReceive('rankCandidates')
                 ->once()
                 ->with('loves hiking. smoking', \Mockery::type(Collection::class))
-                ->andReturn([]);
+                ->andReturnUsing(fn ($criteria, $candidates) => $candidates->map(fn ($c) => [
+                    'user_id' => $c->id,
+                    'score'   => 75,
+                    'reason'  => 'Shares your interest in hiking, no dealbreakers triggered',
+                ])->values()->all());
         });
 
         [$service, $conversation] = $this->enterMatchesWorkspace($user);
@@ -190,7 +199,7 @@ class MatchesFlowTest extends TestCase
         $this->assertSame($candidate->id, $payload[0]['id']);
     }
 
-    public function test_no_matching_candidates_reports_no_matches(): void
+    public function test_no_candidates_at_all_stays_open_for_retry_instead_of_ending(): void
     {
         [$user] = $this->makeMatchesWorkspaceAndUser();
         // No candidates created at all.
@@ -206,9 +215,63 @@ class MatchesFlowTest extends TestCase
         $service->handleMessage($conversation, 'anyone friendly', []);
         $conversation->refresh();
 
-        $this->assertSame('completed', $conversation->status);
+        // Must NOT be 'completed' — a dead end here means handleMessage()'s
+        // default arm rejects any further reply with "conversation already
+        // completed," even though the user has nothing to show for it yet.
+        $this->assertSame('awaiting_match_criteria', $conversation->status);
 
         $lastMessage = $conversation->messages()->where('type', 'message')->get()->last();
-        $this->assertStringContainsString('No matching found', $lastMessage->message);
+        $this->assertStringContainsString("couldn't find a strong match", $lastMessage->message);
+        $this->assertStringContainsString('height', $lastMessage->message);
+    }
+
+    public function test_below_threshold_match_stays_open_for_retry_then_succeeds(): void
+    {
+        [$user] = $this->makeMatchesWorkspaceAndUser();
+        $candidate = $this->makeCandidate('male');
+
+        $this->mock(MatchCriteriaService::class, function ($mock) use ($candidate) {
+            $mock->shouldReceive('assessCriteria')
+                ->once()
+                ->with('7 feet tall astronaut')
+                ->andReturn(['concrete' => true, 'suggestion' => null]);
+
+            // First attempt: candidate scores below MIN_MATCH_SCORE (40) —
+            // should be treated as no match, not shown.
+            $mock->shouldReceive('rankCandidates')
+                ->once()
+                ->with('7 feet tall astronaut', \Mockery::type(Collection::class))
+                ->andReturn([['user_id' => $candidate->id, 'score' => 10, 'reason' => 'Height way off']]);
+
+            // Retry with different criteria: this time it clears the bar.
+            $mock->shouldReceive('rankCandidates')
+                ->once()
+                ->with('likes hiking', \Mockery::type(Collection::class))
+                ->andReturn([['user_id' => $candidate->id, 'score' => 65, 'reason' => 'Shares your interest in hiking']]);
+        });
+
+        [$service, $conversation] = $this->enterMatchesWorkspace($user);
+        $service->handleMessage($conversation, 'Male', []);
+        $conversation->refresh();
+
+        $service->handleMessage($conversation, '7 feet tall astronaut', []);
+        $conversation->refresh();
+
+        $this->assertSame('awaiting_match_criteria', $conversation->status);
+        $lastMessage = $conversation->messages()->where('type', 'message')->get()->last();
+        $this->assertStringContainsString("couldn't find a strong match", $lastMessage->message);
+
+        // Retry with different criteria — should search again and succeed.
+        $service->handleMessage($conversation, 'likes hiking', []);
+        $conversation->refresh();
+
+        $this->assertSame('completed', $conversation->status);
+        $this->assertSame('likes hiking', $conversation->match_criteria);
+
+        $matches = $conversation->messages()->where('type', 'matches')->get()->last();
+        $payload = json_decode($matches->message, true);
+        $this->assertCount(1, $payload);
+        $this->assertSame($candidate->id, $payload[0]['id']);
+        $this->assertSame(65, $payload[0]['compatibility_score']);
     }
 }
