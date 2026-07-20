@@ -5,6 +5,7 @@ namespace Tests\Feature\AiConversation;
 use App\Models\AiConversation;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Services\AI\SocialPostCollectorService;
 use App\Services\WorkspaceConversationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -53,6 +54,14 @@ class WorkspaceEntryFlowTest extends TestCase
     {
         $workspace = $this->makeSocialPostWorkspace();
         $user = User::factory()->create();
+
+        // Entering the Social Post workspace now generates 6 AI topic-suggestion
+        // pills — mock it so this test doesn't make a real OpenAI HTTP call.
+        $this->mock(SocialPostCollectorService::class, function ($mock) {
+            $mock->shouldReceive('suggestTopics')
+                ->once()
+                ->andReturn(['Food', 'Travel', 'Nature', 'Pets', 'Fitness', 'Art']);
+        });
 
         $service = app(WorkspaceConversationService::class);
         $started = $service->startConversation($user->id);

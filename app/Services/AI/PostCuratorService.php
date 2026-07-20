@@ -15,14 +15,20 @@ class PostCuratorService
 
     /**
      * Analyze the user's description + uploaded images, detect the topic,
-     * and return polished long/short descriptions plus tags.
+     * and return polished long/short descriptions plus tags. An optional
+     * topic hint (what the user said the post was about, before writing the
+     * description) is passed along as extra context when present.
      *
      * @param  string[]  $imagePaths  Paths on the public disk.
      * @return array{topic: string, description: string, short_description: string, tags: string[]}
      */
-    public function curate(string $description, array $imagePaths): array
+    public function curate(string $description, array $imagePaths, ?string $topicHint = null): array
     {
-        $content = [['type' => 'text', 'text' => $description]];
+        $text = filled($topicHint)
+            ? "The user said this post is about: {$topicHint}.\n\n{$description}"
+            : $description;
+
+        $content = [['type' => 'text', 'text' => $text]];
 
         foreach (array_slice($imagePaths, 0, self::MAX_IMAGES) as $path) {
             $content[] = ['type' => 'image_url', 'image_url' => ['url' => $this->toDataUri($path)]];

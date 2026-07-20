@@ -25,15 +25,16 @@ class WorkspaceConversationService
 
     protected const MSG_SELECT_PROMPT = 'Select one of the optional prompts below';
     protected const MSG_UNDER_DEV = 'This feature is currently under development and will be available soon.';
-    protected const MSG_SOCIAL_OPENING = 'Tell me about your post and share a photo to go with it.';
+    protected const MSG_SOCIAL_OPENING = 'What is your post about?';
+    protected const MSG_SOCIAL_DETAILS_PROMPT = 'Please give me a description and a photo for your post.';
     protected const MSG_STILL_NEED_IMAGE = "Don't forget to share a photo so I can finish your post!";
-    protected const MSG_NEED_MORE_DETAIL = 'Could you share a bit more detail about your post?';
+    protected const MSG_NEED_MORE_DETAIL = 'Your description is a bit short — could you share more detail so I can write a great post? Aim for at least 150 words.';
     protected const MSG_PUBLISHED = 'Your post has been published successfully.';
     protected const MSG_DRAFT_DELETED = 'Draft deleted successfully.';
     protected const MSG_ASK_EDIT_INSTRUCTION = 'What would you like to change about your post?';
     protected const MSG_CONVERSATION_DONE = 'This conversation has already been completed. Start a new conversation to create another post.';
     protected const MSG_CHOOSE_OPTION = 'Please choose one of the options below.';
-    protected const MIN_DESCRIPTION_WORDS = 3;
+    protected const MIN_DESCRIPTION_WORDS = 150;
 
     protected const MSG_PROFILE_INCOMPLETE = 'Please complete your dating preference on your profile before we can find matches for you.';
     protected const MSG_ASK_GENDER = "What are you looking for — male or female?";
@@ -157,11 +158,27 @@ class WorkspaceConversationService
             return;
         }
 
+        if ($workspace->slug === Workspace::SLUG_SOCIAL_POST) {
+            $this->enterSocialPostWorkspace($conversation, $workspace);
+            return;
+        }
+
         $conversation->update(['workspace_id' => $workspace->id, 'status' => 'collecting']);
         $this->storeReply($conversation, $this->guidanceFor($workspace));
     }
 
     // ─── Social Post / Market Place Collection ──────────────────────────────
+
+    /**
+     * Ask what the post is about and offer 6 freshly AI-generated topic
+     * pills as inspiration — the user can tap one or type their own answer.
+     */
+    protected function enterSocialPostWorkspace(AiConversation $conversation, Workspace $workspace): void
+    {
+        $conversation->update(['workspace_id' => $workspace->id, 'status' => 'collecting']);
+        $this->storeReply($conversation, self::MSG_SOCIAL_OPENING);
+        $this->storePills($conversation, $this->socialCollector->suggestTopics());
+    }
 
     protected function handleCollecting(AiConversation $conversation, ?string $text, array $imagePaths, array $extra): void
     {
@@ -172,15 +189,43 @@ class WorkspaceConversationService
             return;
         }
 
+        if (blank($conversation->topic)) {
+            $this->handleSocialPostTopicHint($conversation, $text, $imagePaths);
+            return;
+        }
+
         $this->handleSocialPostCollecting($conversation, $text, $imagePaths);
     }
 
     /**
-     * Single-step Social Post collection: merge any new images, store any new
-     * text as the description, then validate both are present before curating.
-     * Both checks are deterministic — no AI call spent on invalid input. The
-     * post's topic (used as its title) is always AI-generated at curation
-     * time, never asked of the user as a separate step.
+     * Phase 1: capture what the post is about. Whatever the user says —
+     * whether it's one of the suggested pills or their own free text — is
+     * taken at face value as the topic hint, no classification or retry
+     * loop. Any image sent alongside is stored for Phase 2, but doesn't by
+     * itself satisfy this step; a topic hint is still needed to move on.
+     */
+    protected function handleSocialPostTopicHint(AiConversation $conversation, ?string $text, array $imagePaths): void
+    {
+        if (!empty($imagePaths)) {
+            $conversation->update(['images' => array_merge($conversation->images ?? [], $imagePaths)]);
+        }
+
+        if (blank($text)) {
+            $this->storeReply($conversation, self::MSG_SOCIAL_OPENING);
+            return;
+        }
+
+        $conversation->update(['topic' => trim($text)]);
+        $this->storeReply($conversation, self::MSG_SOCIAL_DETAILS_PROMPT);
+    }
+
+    /**
+     * Phase 2: merge any new images, store any new text as the description,
+     * then validate both are present before curating. Both checks are
+     * deterministic — no AI call spent on invalid input. The topic hint
+     * captured in Phase 1 is passed to the curator as extra context; the
+     * post's real topic (used as its title) is still always AI-generated
+     * at curation time, overwriting the interim hint.
      */
     protected function handleSocialPostCollecting(AiConversation $conversation, ?string $text, array $imagePaths): void
     {
@@ -203,7 +248,7 @@ class WorkspaceConversationService
         }
 
         try {
-            $result = $this->curator->curate($conversation->description, $conversation->images);
+            $result = $this->curator->curate($conversation->description, $conversation->images, $conversation->topic);
         } catch (AIServiceException $e) {
             $this->storeReply($conversation, $e->getMessage());
             return;
@@ -743,9 +788,8 @@ class WorkspaceConversationService
     protected function guidanceFor(Workspace $workspace): string
     {
         return match ($workspace->slug) {
-            Workspace::SLUG_SOCIAL_POST   => self::MSG_SOCIAL_OPENING,
-            Workspace::SLUG_MARKET_PLACE  => self::MSG_MARKETPLACE_GUIDANCE,
-            default                       => self::MSG_UNDER_DEV,
+            Workspace::SLUG_MARKET_PLACE => self::MSG_MARKETPLACE_GUIDANCE,
+            default                      => self::MSG_UNDER_DEV,
         };
     }
 
