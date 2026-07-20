@@ -29,6 +29,7 @@ class WorkspaceConversationService
     protected const MSG_SOCIAL_DETAILS_PROMPT = 'Please give me a description and a photo for your post.';
     protected const MSG_STILL_NEED_IMAGE = "Don't forget to share a photo so I can finish your post!";
     protected const MSG_NEED_MORE_DETAIL = 'Your description is a bit short — could you share more detail so I can write a great post? Aim for at least 150 words.';
+    protected const MSG_DESCRIPTION_NOT_SUBSTANTIVE = "That description doesn't seem to say much about your post — could you share more specific details about what it's actually about?";
     protected const MSG_PUBLISHED = 'Your post has been published successfully.';
     protected const MSG_DRAFT_DELETED = 'Draft deleted successfully.';
     protected const MSG_ASK_EDIT_INSTRUCTION = 'What would you like to change about your post?';
@@ -247,6 +248,11 @@ class WorkspaceConversationService
             return;
         }
 
+        if (!$this->socialCollector->isSubstantive($conversation->description)) {
+            $this->storeReply($conversation, self::MSG_DESCRIPTION_NOT_SUBSTANTIVE);
+            return;
+        }
+
         try {
             $result = $this->curator->curate($conversation->description, $conversation->images, $conversation->topic);
         } catch (AIServiceException $e) {
@@ -273,12 +279,14 @@ class WorkspaceConversationService
     /**
      * Shared tail for Social Post curation: persist the curated draft, narrate
      * what the AI understood, then show the preview card and its pills.
+     * `description` is deliberately left untouched — it's the user's own
+     * words, already stored during collection; only topic (title),
+     * short_description, and tags are AI-generated.
      */
     protected function finalizePost(AiConversation $conversation, array $result): void
     {
         $conversation->update([
             'topic'             => $result['topic'],
-            'description'       => $result['description'],
             'short_description' => $result['short_description'],
             'tags'              => $result['tags'],
             'status'            => 'preview',

@@ -157,14 +157,53 @@ class SocialPostCollectionTest extends TestCase
         $this->assertStringContainsString('at least 150 words', $lastMessage->message);
     }
 
+    public function test_gibberish_description_is_rejected_before_curation(): void
+    {
+        // 150+ words, so it passes the deterministic word-count gate — the
+        // substantiveness check is what must catch this, not word count.
+        $gibberish = trim(str_repeat('lorem ipsum dolor sit amet ', 30));
+
+        $this->mock(SocialPostCollectorService::class, function ($mock) use ($gibberish) {
+            $mock->shouldReceive('suggestTopics')
+                ->once()
+                ->andReturn(['Food', 'Travel', 'Nature', 'Pets', 'Fitness', 'Art']);
+
+            $mock->shouldReceive('isSubstantive')
+                ->once()
+                ->with($gibberish)
+                ->andReturn(false);
+        });
+
+        $this->mock(PostCuratorService::class, function ($mock) {
+            $mock->shouldNotReceive('curate');
+        });
+
+        [$service, $conversation] = $this->enterSocialPostWorkspace();
+        $service->handleMessage($conversation, 'trees', []);
+        $conversation->refresh();
+
+        $service->handleMessage($conversation, $gibberish, ['posts/photo1.jpg']);
+        $conversation->refresh();
+
+        $this->assertSame('collecting', $conversation->status);
+
+        $lastMessage = $conversation->messages()->where('type', 'message')->get()->last();
+        $this->assertStringContainsString('more specific details', $lastMessage->message);
+    }
+
     public function test_valid_description_and_image_curates_with_topic_hint_and_moves_to_preview(): void
     {
         $longDescription = trim(str_repeat('lovely ', 150));
 
-        $this->mock(SocialPostCollectorService::class, function ($mock) {
+        $this->mock(SocialPostCollectorService::class, function ($mock) use ($longDescription) {
             $mock->shouldReceive('suggestTopics')
                 ->once()
                 ->andReturn(['Food', 'Travel', 'Nature', 'Pets', 'Fitness', 'Art']);
+
+            $mock->shouldReceive('isSubstantive')
+                ->once()
+                ->with($longDescription)
+                ->andReturn(true);
 
             $mock->shouldReceive('acknowledge')
                 ->once()
@@ -193,6 +232,10 @@ class SocialPostCollectionTest extends TestCase
 
         $this->assertSame('preview', $conversation->status);
         $this->assertSame('Trees', $conversation->topic);
+
+        // description stays the user's own words — never overwritten by the
+        // AI's rewritten long_description (that's the bug this test guards).
+        $this->assertSame($longDescription, $conversation->description);
         $this->assertSame(['trees', 'nature', 'outdoors'], $conversation->tags);
 
         $preview = $conversation->messages()->where('type', 'post')->get()->last();
