@@ -25,14 +25,15 @@ class WorkspaceConversationService
 
     protected const MSG_SELECT_PROMPT = 'Select one of the optional prompts below';
     protected const MSG_UNDER_DEV = 'This feature is currently under development and will be available soon.';
-    protected const MSG_SOCIAL_OPENING = 'Hi! What would you like to post about today?';
-    protected const MSG_TOPIC_FALLBACK = "No worries — just share a photo of what you'd like to post, and I'll take it from there.";
+    protected const MSG_SOCIAL_OPENING = 'Tell me about your post and share a photo to go with it.';
     protected const MSG_STILL_NEED_IMAGE = "Don't forget to share a photo so I can finish your post!";
+    protected const MSG_NEED_MORE_DETAIL = 'Could you share a bit more detail about your post?';
     protected const MSG_PUBLISHED = 'Your post has been published successfully.';
     protected const MSG_DRAFT_DELETED = 'Draft deleted successfully.';
     protected const MSG_ASK_EDIT_INSTRUCTION = 'What would you like to change about your post?';
     protected const MSG_CONVERSATION_DONE = 'This conversation has already been completed. Start a new conversation to create another post.';
     protected const MSG_CHOOSE_OPTION = 'Please choose one of the options below.';
+    protected const MIN_DESCRIPTION_WORDS = 3;
 
     protected const MSG_PROFILE_INCOMPLETE = 'Please complete your dating preference on your profile before we can find matches for you.';
     protected const MSG_ASK_GENDER = "What are you looking for — male or female?";
@@ -171,80 +172,38 @@ class WorkspaceConversationService
             return;
         }
 
+        $this->handleSocialPostCollecting($conversation, $text, $imagePaths);
+    }
+
+    /**
+     * Single-step Social Post collection: merge any new images, store any new
+     * text as the description, then validate both are present before curating.
+     * Both checks are deterministic — no AI call spent on invalid input. The
+     * post's topic (used as its title) is always AI-generated at curation
+     * time, never asked of the user as a separate step.
+     */
+    protected function handleSocialPostCollecting(AiConversation $conversation, ?string $text, array $imagePaths): void
+    {
         if (!empty($imagePaths)) {
             $conversation->update(['images' => array_merge($conversation->images ?? [], $imagePaths)]);
         }
 
-        if (blank($conversation->topic)) {
-            $this->handleTopicDiscovery($conversation, $text);
-            return;
-        }
-
-        $this->handleDetailsCollection($conversation, $text);
-    }
-
-    /**
-     * Phase 1: figure out what the user wants to post about. An uploaded image
-     * (with or without accompanying text) is content enough to skip straight to
-     * curation — vision fills in what words didn't. Otherwise classify the text;
-     * an unclear reply asks again (varied, AI-generated) up to 3 times, then
-     * pivots to asking directly for a photo instead of repeating the question.
-     */
-    protected function handleTopicDiscovery(AiConversation $conversation, ?string $text): void
-    {
-        if ($conversation->hasImages()) {
-            $this->curateFromImage($conversation, $text);
-            return;
-        }
-
-        if (blank($text)) {
-            $this->storeReply($conversation, self::MSG_SOCIAL_OPENING);
-            return;
-        }
-
-        $result = $this->socialCollector->classifyTopic($text, $this->recentHistory($conversation));
-
-        if (blank($result['topic'])) {
-            $attempts = ($conversation->topic_clarify_attempts ?? 0) + 1;
-            $conversation->update(['topic_clarify_attempts' => $attempts]);
-
-            $reply = $attempts >= 3 ? self::MSG_TOPIC_FALLBACK : ($result['reply'] ?: self::MSG_TOPIC_FALLBACK);
-            $this->storeReply($conversation, $reply);
-            return;
-        }
-
-        $conversation->update(['topic' => $result['topic'], 'topic_clarify_attempts' => null]);
-
-        $reply = $this->socialCollector->askForDetails($result['topic']);
-        $this->storeReply($conversation, $reply);
-    }
-
-    /**
-     * Phase 2: topic is known, waiting on a photo (description/elaboration is
-     * optional). Any text is stored as elaboration; once an image exists, curate.
-     */
-    protected function handleDetailsCollection(AiConversation $conversation, ?string $text): void
-    {
         if (filled($text)) {
             $conversation->update(['description' => trim($text)]);
         }
 
-        if ($conversation->hasImages()) {
-            $this->curateNow($conversation);
+        if (!$conversation->hasImages()) {
+            $this->storeReply($conversation, self::MSG_STILL_NEED_IMAGE);
             return;
         }
 
-        $this->storeReply($conversation, self::MSG_STILL_NEED_IMAGE);
-    }
+        if (!$this->hasValidDescription($conversation)) {
+            $this->storeReply($conversation, self::MSG_NEED_MORE_DETAIL);
+            return;
+        }
 
-    /**
-     * Curate straight from an image (Phase 1 image-first path) — topic doesn't
-     * exist yet, so an empty description is fine; curate() leans on the image.
-     */
-    protected function curateFromImage(AiConversation $conversation, ?string $text): void
-    {
         try {
-            $result = $this->curator->curate($text ? trim($text) : '', $conversation->images);
+            $result = $this->curator->curate($conversation->description, $conversation->images);
         } catch (AIServiceException $e) {
             $this->storeReply($conversation, $e->getMessage());
             return;
@@ -254,24 +213,20 @@ class WorkspaceConversationService
     }
 
     /**
-     * Curate once topic + image are both already known (Phase 2 completion).
-     * Falls back to the bare topic as the description when the user never
-     * added elaboration text — vision carries the rest.
+     * Deterministic minimum-effort check — catches blank/near-blank
+     * submissions before spending an AI call. Not a quality/coherence
+     * judgment (that would require its own AI call, deliberately out of
+     * scope for this check).
      */
-    protected function curateNow(AiConversation $conversation): void
+    protected function hasValidDescription(AiConversation $conversation): bool
     {
-        try {
-            $result = $this->curator->curate($conversation->description ?: $conversation->topic, $conversation->images);
-        } catch (AIServiceException $e) {
-            $this->storeReply($conversation, $e->getMessage());
-            return;
-        }
+        $description = trim((string) $conversation->description);
 
-        $this->finalizePost($conversation, $result);
+        return $description !== '' && str_word_count($description) >= self::MIN_DESCRIPTION_WORDS;
     }
 
     /**
-     * Shared tail for both curation paths: persist the curated draft, narrate
+     * Shared tail for Social Post curation: persist the curated draft, narrate
      * what the AI understood, then show the preview card and its pills.
      */
     protected function finalizePost(AiConversation $conversation, array $result): void
