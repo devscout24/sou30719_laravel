@@ -728,54 +728,6 @@ class WorkspaceConversationService
         ]);
     }
 
-    // ─── Conversation History (for AI context) ───────────────────────────────
-
-    /**
-     * Prior conversation turns as OpenAI-style role/content pairs, oldest first,
-     * excluding the current turn (already recorded and passed separately).
-     *
-     * @return array<int, array{role: string, content: string}>
-     */
-    protected function recentHistory(AiConversation $conversation, int $limit = 10): array
-    {
-        $messages = $conversation->messages()
-            ->reorder('created_at', 'desc')
-            ->orderBy('id', 'desc')
-            ->limit($limit + 1)
-            ->get()
-            ->reverse()
-            ->values();
-
-        if ($messages->isNotEmpty()) {
-            $messages = $messages->slice(0, -1);
-        }
-
-        return $messages
-            ->filter(fn (AiMessage $message) => $message->type === 'message')
-            ->map(fn (AiMessage $message) => [
-                'role'    => $message->sender === 'user' ? 'user' : 'assistant',
-                'content' => $this->extractChatText($message),
-            ])
-            ->filter(fn (array $entry) => $entry['content'] !== '')
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Extract plain chat text from a message for AI context.
-     */
-    protected function extractChatText(AiMessage $message): string
-    {
-        // For user messages, the text is stored directly in the message column now.
-        // For AI messages of type 'message', the raw string is the text.
-        // Skip non-message types (pills, post previews) — they aren't useful as chat context.
-        if ($message->type !== 'message') {
-            return '';
-        }
-
-        return (string) $message->message;
-    }
-
     // ─── Pill Helpers ────────────────────────────────────────────────────────
 
     protected function previewPills(): array

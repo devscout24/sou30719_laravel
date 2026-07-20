@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -15,6 +16,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        DB::table('ai_conversations')
+            ->where('status', 'confirming_workspace')
+            ->update([
+                'status'         => 'idle',
+                'workspace_id'   => null,
+                'match_gender'   => null,
+                'match_criteria' => null,
+            ]);
+
         Schema::table('ai_conversations', function (Blueprint $table) {
             $table->dropColumn('topic_clarify_attempts');
         });
