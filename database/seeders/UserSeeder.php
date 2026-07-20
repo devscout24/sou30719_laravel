@@ -52,5 +52,14 @@ class UserSeeder extends Seeder
         );
         Role::firstOrCreate(['name' => 'demo', 'guard_name' => $guardName]);
         $demo->assignRole('demo');
+
+        // firstOrCreate only applies its attributes on first creation — force
+        // verification here too, so re-running this seeder against a DB where
+        // these accounts already existed (unverified) still fixes them.
+        foreach ([$admin, $user, $demo] as $seededUser) {
+            if (!$seededUser->email_verified_at) {
+                $seededUser->forceFill(['email_verified_at' => now()])->save();
+            }
+        }
     }
 }

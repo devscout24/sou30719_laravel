@@ -13,6 +13,7 @@ use Database\Seeders\PostSeeder;
 use Database\Seeders\ChatSeeder;
 use Database\Seeders\AiSuggestedPromptSeeder;
 use Database\Seeders\SubscriptionPlanSeeder;
+use Database\Seeders\DatingProfileSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -29,6 +30,7 @@ class DatabaseSeeder extends Seeder
             SubscriptionPlanSeeder::class,
             PostSeeder::class,
             ChatSeeder::class,
+            DatingProfileSeeder::class,
         ]);
 
 
