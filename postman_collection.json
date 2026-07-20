@@ -7090,6 +7090,906 @@
             ]
         },
         {
+            "name": "Matches Topics",
+            "item": [
+                {
+                    "name": "GET Matches Topics",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/matches/topics",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "topics"
+                            ]
+                        },
+                        "description": "Returns the 6 fixed tabs (is_fixed: true) every user shares — newest, local, friendship, long_term, marriage, open_to_dating — followed by this user's own custom tabs (is_fixed: false). Fully independent of GET /feed/topics."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/matches/topics",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "matches",
+                                        "topics"
+                                    ]
+                                },
+                                "description": "Returns the 6 fixed tabs (is_fixed: true) every user shares — newest, local, friendship, long_term, marriage, open_to_dating — followed by this user's own custom tabs (is_fixed: false). Fully independent of GET /feed/topics."
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Topics fetched successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"name\": \"Newest\",\n            \"slug\": \"newest\",\n            \"icon\": null,\n            \"is_fixed\": true,\n            \"created_at\": \"2026-07-20T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 2,\n            \"name\": \"Local\",\n            \"slug\": \"local\",\n            \"icon\": null,\n            \"is_fixed\": true,\n            \"created_at\": \"2026-07-20T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 3,\n            \"name\": \"Friendship\",\n            \"slug\": \"friendship\",\n            \"icon\": null,\n            \"is_fixed\": true,\n            \"created_at\": \"2026-07-20T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 4,\n            \"name\": \"Long Term\",\n            \"slug\": \"long_term\",\n            \"icon\": null,\n            \"is_fixed\": true,\n            \"created_at\": \"2026-07-20T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 5,\n            \"name\": \"Marriage\",\n            \"slug\": \"marriage\",\n            \"icon\": null,\n            \"is_fixed\": true,\n            \"created_at\": \"2026-07-20T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 6,\n            \"name\": \"Open to Dating\",\n            \"slug\": \"open_to_dating\",\n            \"icon\": null,\n            \"is_fixed\": true,\n            \"created_at\": \"2026-07-20T00:00:00.000000Z\"\n        },\n        {\n            \"id\": 7,\n            \"name\": \"Weekend Hikers\",\n            \"slug\": null,\n            \"icon\": null,\n            \"is_fixed\": false,\n            \"created_at\": \"2026-07-20T12:00:00.000000Z\"\n        }\n    ],\n    \"code\": 200\n}"
+                        },
+                        {
+                            "name": "Unauthenticated",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/matches/topics",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "matches",
+                                        "topics"
+                                    ]
+                                },
+                                "description": "Returns the 6 fixed tabs (is_fixed: true) every user shares — newest, local, friendship, long_term, marriage, open_to_dating — followed by this user's own custom tabs (is_fixed: false). Fully independent of GET /feed/topics."
+                            },
+                            "status": "Unauthorized",
+                            "code": 401,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "POST Add Matches Topic",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Weekend Hikers\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/matches/topics",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "topics"
+                            ]
+                        },
+                        "description": "Add a custom tab (max 5 per user, on top of the 6 fixed tabs). Rejects names that duplicate an existing fixed or custom tab (case-insensitive)."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Weekend Hikers\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/matches/topics",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "matches",
+                                        "topics"
+                                    ]
+                                },
+                                "description": "Add a custom tab (max 5 per user, on top of the 6 fixed tabs). Rejects names that duplicate an existing fixed or custom tab (case-insensitive)."
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Topic added successfully\",\n    \"data\": {\n        \"id\": 7,\n        \"name\": \"Weekend Hikers\",\n        \"slug\": null,\n        \"icon\": null,\n        \"is_fixed\": false,\n        \"created_at\": \"2026-07-20T12:00:00.000000Z\"\n    },\n    \"code\": 200\n}"
+                        },
+                        {
+                            "name": "Maximum Custom Topics Reached",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Weekend Hikers\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/matches/topics",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "matches",
+                                        "topics"
+                                    ]
+                                },
+                                "description": "Add a custom tab (max 5 per user, on top of the 6 fixed tabs). Rejects names that duplicate an existing fixed or custom tab (case-insensitive)."
+                            },
+                            "status": "Unprocessable Entity",
+                            "code": 422,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"You have reached the maximum of 5 custom topics.\",\n    \"data\": [],\n    \"code\": 422\n}"
+                        },
+                        {
+                            "name": "Duplicate Name (matches a fixed or custom topic)",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Weekend Hikers\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/matches/topics",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "matches",
+                                        "topics"
+                                    ]
+                                },
+                                "description": "Add a custom tab (max 5 per user, on top of the 6 fixed tabs). Rejects names that duplicate an existing fixed or custom tab (case-insensitive)."
+                            },
+                            "status": "Unprocessable Entity",
+                            "code": 422,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"A topic with this name already exists.\",\n    \"data\": [],\n    \"code\": 422\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "DELETE Matches Topic",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/matches/topics/{{match_topic_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "topics",
+                                "{{match_topic_id}}"
+                            ]
+                        },
+                        "description": "Delete one of the authenticated user's own custom Matches tabs. Fixed tabs and other users' tabs can never be deleted this way (404)."
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/matches/topics/{{match_topic_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "matches",
+                                        "topics",
+                                        "{{match_topic_id}}"
+                                    ]
+                                },
+                                "description": "Delete one of the authenticated user's own custom Matches tabs. Fixed tabs and other users' tabs can never be deleted this way (404)."
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Topic removed successfully\",\n    \"data\": [],\n    \"code\": 200\n}"
+                        },
+                        {
+                            "name": "Topic Not Found (fixed tab or not owned by you)",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/matches/topics/{{match_topic_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "matches",
+                                        "topics",
+                                        "{{match_topic_id}}"
+                                    ]
+                                },
+                                "description": "Delete one of the authenticated user's own custom Matches tabs. Fixed tabs and other users' tabs can never be deleted this way (404)."
+                            },
+                            "status": "Not Found",
+                            "code": 404,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"Topic not found\",\n    \"data\": [],\n    \"code\": 404\n}"
+                        }
+                    ]
+                }
+            ],
+            "description": "Unified Matches tab list: 6 fixed (built-in) tabs shared by every user, plus up to 5 custom tabs each user can add. Fully independent of the Feed Topics module — no shared tables, models, or routes. Both are used interchangeably as topic_id in GET /matches/search."
+        },
+        {
+            "name": "Matches Search",
+            "item": [
+                {
+                    "name": "GET Matches Search",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/matches/search?tab=newest&per_page=15",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "tab",
+                                    "value": "newest",
+                                    "description": "newest | local | friendship | long_term | marriage | open_to_dating"
+                                },
+                                {
+                                    "key": "topic_id",
+                                    "value": "",
+                                    "description": "Optional. Overrides tab — pass a custom tab's id from GET /matches/topics.",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "gender",
+                                    "value": "",
+                                    "description": "male | female | both. Defaults to your saved DatingPreference.interested_in.",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "min_age",
+                                    "value": "",
+                                    "description": "Defaults to your saved DatingPreference.min_age.",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "max_age",
+                                    "value": "",
+                                    "description": "Defaults to your saved DatingPreference.max_age.",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "max_distance",
+                                    "value": "",
+                                    "description": "km. Defaults to your saved DatingPreference.max_distance.",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "relationship_goal",
+                                    "value": "",
+                                    "description": "casual | long_term | marriage | friendship | not_sure",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
+                            ]
+                        },
+                        "description": "Tabbed, filterable browse of dating candidates — the Matches equivalent of GET /feed. Fully independent of the Feed/Post module; favorites and connection status are read from the existing Friends module (SavedProfile, UserConnection, ConnectionRequest) unchanged. A candidate with DatingPreference.is_open_to_dating = false never appears in any tab. The friendship/long_term/marriage tabs filter by DatingPreference.relationship_goal, not by your actual friends list."
+                    },
+                    "response": [
+                        {
+                            "name": "Success (Newest tab)",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/matches/search?tab=newest&per_page=15",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "matches",
+                                        "search"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "tab",
+                                            "value": "newest",
+                                            "description": "newest | local | friendship | long_term | marriage | open_to_dating"
+                                        },
+                                        {
+                                            "key": "topic_id",
+                                            "value": "",
+                                            "description": "Optional. Overrides tab — pass a custom tab's id from GET /matches/topics.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "gender",
+                                            "value": "",
+                                            "description": "male | female | both. Defaults to your saved DatingPreference.interested_in.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "min_age",
+                                            "value": "",
+                                            "description": "Defaults to your saved DatingPreference.min_age.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "max_age",
+                                            "value": "",
+                                            "description": "Defaults to your saved DatingPreference.max_age.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "max_distance",
+                                            "value": "",
+                                            "description": "km. Defaults to your saved DatingPreference.max_distance.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "relationship_goal",
+                                            "value": "",
+                                            "description": "casual | long_term | marriage | friendship | not_sure",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "per_page",
+                                            "value": "15"
+                                        }
+                                    ]
+                                },
+                                "description": "Tabbed, filterable browse of dating candidates — the Matches equivalent of GET /feed. Fully independent of the Feed/Post module; favorites and connection status are read from the existing Friends module (SavedProfile, UserConnection, ConnectionRequest) unchanged. A candidate with DatingPreference.is_open_to_dating = false never appears in any tab. The friendship/long_term/marriage tabs filter by DatingPreference.relationship_goal, not by your actual friends list."
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Matches fetched successfully\",\n    \"data\": {\n        \"users\": [\n            {\n                \"id\": 8,\n                \"avatar\": \"http://localhost/user.png\",\n                \"name\": \"Jane Smith\",\n                \"username\": \"janesmith22\",\n                \"age\": 29,\n                \"city\": \"Austin\",\n                \"about\": \"Loves hiking and coffee.\",\n                \"occupation\": \"Designer\",\n                \"relationship_goal\": \"long_term\",\n                \"relation_status\": \"none\",\n                \"is_favorite\": false\n            }\n        ],\n        \"pagination\": {\n            \"current_page\": 1,\n            \"per_page\": 15,\n            \"total\": 1,\n            \"last_page\": 1\n        }\n    },\n    \"code\": 200\n}"
+                        },
+                        {
+                            "name": "Success (Local tab, includes distance_km)",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/matches/search?tab=local&per_page=15",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "matches",
+                                        "search"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "tab",
+                                            "value": "local",
+                                            "description": "newest | local | friendship | long_term | marriage | open_to_dating"
+                                        },
+                                        {
+                                            "key": "topic_id",
+                                            "value": "",
+                                            "description": "Optional. Overrides tab — pass a custom tab's id from GET /matches/topics.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "gender",
+                                            "value": "",
+                                            "description": "male | female | both. Defaults to your saved DatingPreference.interested_in.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "min_age",
+                                            "value": "",
+                                            "description": "Defaults to your saved DatingPreference.min_age.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "max_age",
+                                            "value": "",
+                                            "description": "Defaults to your saved DatingPreference.max_age.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "max_distance",
+                                            "value": "",
+                                            "description": "km. Defaults to your saved DatingPreference.max_distance.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "relationship_goal",
+                                            "value": "",
+                                            "description": "casual | long_term | marriage | friendship | not_sure",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "per_page",
+                                            "value": "15"
+                                        }
+                                    ]
+                                },
+                                "description": "Tabbed, filterable browse of dating candidates — the Matches equivalent of GET /feed. Fully independent of the Feed/Post module; favorites and connection status are read from the existing Friends module (SavedProfile, UserConnection, ConnectionRequest) unchanged. A candidate with DatingPreference.is_open_to_dating = false never appears in any tab. The friendship/long_term/marriage tabs filter by DatingPreference.relationship_goal, not by your actual friends list."
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": true,\n    \"message\": \"Matches fetched successfully\",\n    \"data\": {\n        \"users\": [\n            {\n                \"id\": 8,\n                \"avatar\": \"http://localhost/user.png\",\n                \"name\": \"Jane Smith\",\n                \"username\": \"janesmith22\",\n                \"age\": 29,\n                \"city\": \"Austin\",\n                \"about\": \"Loves hiking and coffee.\",\n                \"occupation\": \"Designer\",\n                \"relationship_goal\": \"long_term\",\n                \"relation_status\": \"none\",\n                \"is_favorite\": false,\n                \"distance_km\": 3.2\n            }\n        ],\n        \"pagination\": {\n            \"current_page\": 1,\n            \"per_page\": 15,\n            \"total\": 1,\n            \"last_page\": 1\n        }\n    },\n    \"code\": 200\n}"
+                        },
+                        {
+                            "name": "Location Not Set (tab=local)",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/matches/search?tab=local&per_page=15",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "matches",
+                                        "search"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "tab",
+                                            "value": "local",
+                                            "description": "newest | local | friendship | long_term | marriage | open_to_dating"
+                                        },
+                                        {
+                                            "key": "topic_id",
+                                            "value": "",
+                                            "description": "Optional. Overrides tab — pass a custom tab's id from GET /matches/topics.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "gender",
+                                            "value": "",
+                                            "description": "male | female | both. Defaults to your saved DatingPreference.interested_in.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "min_age",
+                                            "value": "",
+                                            "description": "Defaults to your saved DatingPreference.min_age.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "max_age",
+                                            "value": "",
+                                            "description": "Defaults to your saved DatingPreference.max_age.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "max_distance",
+                                            "value": "",
+                                            "description": "km. Defaults to your saved DatingPreference.max_distance.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "relationship_goal",
+                                            "value": "",
+                                            "description": "casual | long_term | marriage | friendship | not_sure",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "per_page",
+                                            "value": "15"
+                                        }
+                                    ]
+                                },
+                                "description": "Tabbed, filterable browse of dating candidates — the Matches equivalent of GET /feed. Fully independent of the Feed/Post module; favorites and connection status are read from the existing Friends module (SavedProfile, UserConnection, ConnectionRequest) unchanged. A candidate with DatingPreference.is_open_to_dating = false never appears in any tab. The friendship/long_term/marriage tabs filter by DatingPreference.relationship_goal, not by your actual friends list."
+                            },
+                            "status": "Unprocessable Entity",
+                            "code": 422,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"Location not set. Please update your location to use the Local tab.\",\n    \"data\": [],\n    \"code\": 422\n}"
+                        },
+                        {
+                            "name": "Topic Not Found (invalid topic_id)",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/matches/search?topic_id=9999",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "matches",
+                                        "search"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "topic_id",
+                                            "value": "9999"
+                                        }
+                                    ]
+                                },
+                                "description": "Tabbed, filterable browse of dating candidates — the Matches equivalent of GET /feed. Fully independent of the Feed/Post module; favorites and connection status are read from the existing Friends module (SavedProfile, UserConnection, ConnectionRequest) unchanged. A candidate with DatingPreference.is_open_to_dating = false never appears in any tab. The friendship/long_term/marriage tabs filter by DatingPreference.relationship_goal, not by your actual friends list."
+                            },
+                            "status": "Not Found",
+                            "code": 404,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"status\": false,\n    \"message\": \"Topic not found\",\n    \"data\": [],\n    \"code\": 404\n}"
+                        },
+                        {
+                            "name": "Unauthenticated",
+                            "originalRequest": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/matches/search?tab=newest&per_page=15",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "matches",
+                                        "search"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "tab",
+                                            "value": "newest",
+                                            "description": "newest | local | friendship | long_term | marriage | open_to_dating"
+                                        },
+                                        {
+                                            "key": "topic_id",
+                                            "value": "",
+                                            "description": "Optional. Overrides tab — pass a custom tab's id from GET /matches/topics.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "gender",
+                                            "value": "",
+                                            "description": "male | female | both. Defaults to your saved DatingPreference.interested_in.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "min_age",
+                                            "value": "",
+                                            "description": "Defaults to your saved DatingPreference.min_age.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "max_age",
+                                            "value": "",
+                                            "description": "Defaults to your saved DatingPreference.max_age.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "max_distance",
+                                            "value": "",
+                                            "description": "km. Defaults to your saved DatingPreference.max_distance.",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "relationship_goal",
+                                            "value": "",
+                                            "description": "casual | long_term | marriage | friendship | not_sure",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "per_page",
+                                            "value": "15"
+                                        }
+                                    ]
+                                },
+                                "description": "Tabbed, filterable browse of dating candidates — the Matches equivalent of GET /feed. Fully independent of the Feed/Post module; favorites and connection status are read from the existing Friends module (SavedProfile, UserConnection, ConnectionRequest) unchanged. A candidate with DatingPreference.is_open_to_dating = false never appears in any tab. The friendship/long_term/marriage tabs filter by DatingPreference.relationship_goal, not by your actual friends list."
+                            },
+                            "status": "Unauthorized",
+                            "code": 401,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+                        }
+                    ]
+                }
+            ],
+            "description": "Tabbed, filterable browse of dating candidates — the Matches equivalent of GET /feed. Fully independent of the Feed/Post module; favorites and connection status are read from the existing Friends module (SavedProfile, UserConnection, ConnectionRequest) unchanged. A candidate with DatingPreference.is_open_to_dating = false never appears in any tab. The friendship/long_term/marriage tabs filter by DatingPreference.relationship_goal, not by your actual friends list."
+        },
+        {
             "name": "Feed & Posts",
             "item": [
                 {

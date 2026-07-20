@@ -16,6 +16,7 @@ class DatingPreference extends Model
         'relationship_goal',
         'deal_breakers',
         'partner_preferences',
+        'is_open_to_dating',
     ];
 
     protected $casts = [
@@ -24,6 +25,7 @@ class DatingPreference extends Model
         'max_distance'      => 'integer',
         'interested_in'     => 'string',
         'relationship_goal' => 'string',
+        'is_open_to_dating' => 'boolean',
     ];
 
     // ─── Relationships ───────────────────────────────

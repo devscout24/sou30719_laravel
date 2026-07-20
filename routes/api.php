@@ -9,6 +9,8 @@ use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\FeedSearchController;
 use App\Http\Controllers\API\FriendController;
 use App\Http\Controllers\API\HelpCenterController;
+use App\Http\Controllers\API\MatchSearchController;
+use App\Http\Controllers\API\MatchTopicController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\PolicyController;
 use App\Http\Controllers\API\PostController;
@@ -157,6 +159,18 @@ Route::middleware('auth:api')->group(function () {
     // ── AI Feed Search ────────────────────────────────────────────────────────
     Route::controller(FeedSearchController::class)->group(function () {
         Route::post('/feed/ai-chat', 'chat');
+    });
+
+    // ── Matches Topics: fixed (built-in) + user-added, unified ────────────────
+    Route::controller(MatchTopicController::class)->group(function () {
+        Route::get('/matches/topics', 'index');
+        Route::post('/matches/topics', 'store');
+        Route::delete('/matches/topics/{id}', 'destroy');
+    });
+
+    // ── Matches Search: tabbed, filterable browse of dating candidates ────────
+    Route::controller(MatchSearchController::class)->group(function () {
+        Route::get('/matches/search', 'search');
     });
 
     // ── AI Suggested Prompts: starter chips for AI chat empty states ──────────
