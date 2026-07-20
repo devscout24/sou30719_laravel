@@ -69,10 +69,10 @@ class MatchesFlowTest extends TestCase
         $candidate = $this->makeCandidate('male');
 
         $this->mock(MatchCriteriaService::class, function ($mock) {
-            $mock->shouldReceive('isConcrete')
+            $mock->shouldReceive('assessCriteria')
                 ->once()
                 ->with('tall and athletic')
-                ->andReturn(true);
+                ->andReturn(['concrete' => true, 'suggestion' => null]);
 
             $mock->shouldReceive('rankCandidates')
                 ->once()
@@ -117,12 +117,15 @@ class MatchesFlowTest extends TestCase
         $this->makeCandidate('female');
 
         $this->mock(MatchCriteriaService::class, function ($mock) {
-            $mock->shouldReceive('isConcrete')
+            $mock->shouldReceive('assessCriteria')
                 ->once()
                 ->with('someone nice')
-                ->andReturn(false);
+                ->andReturn([
+                    'concrete'   => false,
+                    'suggestion' => 'try a specific trait like outgoing or family-oriented',
+                ]);
 
-            // Second, still-vague reply must NOT trigger a second isConcrete()
+            // Second, still-vague reply must NOT trigger a second assessCriteria()
             // call — only one follow-up round, then proceed regardless.
             $mock->shouldReceive('rankCandidates')
                 ->once()
@@ -139,6 +142,8 @@ class MatchesFlowTest extends TestCase
         $this->assertSame('awaiting_match_criteria', $conversation->status);
         $lastMessage = $conversation->messages()->where('type', 'message')->get()->last();
         $this->assertStringContainsString('more specific', $lastMessage->message);
+        // The AI's tailored suggestion, not the generic fallback text.
+        $this->assertStringContainsString('try a specific trait like outgoing or family-oriented', $lastMessage->message);
 
         $service->handleMessage($conversation, 'still kind of vague', []);
         $conversation->refresh();
@@ -191,7 +196,7 @@ class MatchesFlowTest extends TestCase
         // No candidates created at all.
 
         $this->mock(MatchCriteriaService::class, function ($mock) {
-            $mock->shouldReceive('isConcrete')->once()->andReturn(true);
+            $mock->shouldReceive('assessCriteria')->once()->andReturn(['concrete' => true, 'suggestion' => null]);
         });
 
         [$service, $conversation] = $this->enterMatchesWorkspace($user);

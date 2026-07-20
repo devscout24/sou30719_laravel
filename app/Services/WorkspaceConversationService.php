@@ -592,13 +592,14 @@ class WorkspaceConversationService
         $criteria         = trim($text);
         $alreadyAskedOnce = filled($conversation->match_criteria);
 
-        if (!$alreadyAskedOnce && !$this->matchCriteria->isConcrete($criteria)) {
-            $conversation->update(['match_criteria' => $criteria]);
-            $this->storeReply(
-                $conversation,
-                sprintf('Could you be a bit more specific about "%s"? For example, an exact trait or number would help.', $criteria)
-            );
-            return;
+        if (!$alreadyAskedOnce) {
+            $assessment = $this->matchCriteria->assessCriteria($criteria);
+
+            if (!$assessment['concrete']) {
+                $conversation->update(['match_criteria' => $criteria]);
+                $this->storeReply($conversation, $this->vagueCriteriaMessage($criteria, $assessment['suggestion']));
+                return;
+            }
         }
 
         $conversation->update(['match_criteria' => $criteria]);
@@ -834,6 +835,18 @@ class WorkspaceConversationService
         };
 
         return "What type of {$label} are you looking for? Describe them a bit.";
+    }
+
+    /**
+     * $suggestion is a tailored example from MatchCriteriaService::assessCriteria(),
+     * based on what the user actually said. Falls back to generic wording on the
+     * rare case the AI call succeeded but didn't produce a usable suggestion.
+     */
+    protected function vagueCriteriaMessage(string $criteria, ?string $suggestion): string
+    {
+        $hint = $suggestion ?: 'an exact trait or number would help';
+
+        return sprintf('Could you be a bit more specific about "%s"? For example, %s.', $criteria, $hint);
     }
 
     protected function guidanceFor(Workspace $workspace): string

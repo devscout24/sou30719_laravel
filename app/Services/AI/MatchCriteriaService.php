@@ -14,11 +14,16 @@ class MatchCriteriaService
 
     /**
      * Is this free-text preference specific enough to search with, or too
-     * vague to act on (e.g. "good height" vs. "5'6\" or taller")?
-     * Degrades to true (treat as concrete, proceed) on AI failure — a
-     * transient outage must not block a user from getting matches.
+     * vague to act on (e.g. "good height" vs. "5'6\" or taller")? When
+     * vague, also returns a short, tailored example suggestion (based on
+     * what the user actually said) so the follow-up question tells them
+     * what kind of detail would help, instead of a generic prompt.
+     * Degrades to concrete=true (proceed) on AI failure — a transient
+     * outage must not block a user from getting matches.
+     *
+     * @return array{concrete: bool, suggestion: ?string}
      */
-    public function isConcrete(string $criteria): bool
+    public function assessCriteria(string $criteria): array
     {
         $messages = [
             ['role' => 'system', 'content' => $this->concreteSystemPrompt()],
@@ -30,12 +35,17 @@ class MatchCriteriaService
         } catch (AIServiceException $e) {
             Log::warning('Match criteria concreteness check failed', ['error' => $e->getMessage()]);
 
-            return true;
+            return ['concrete' => true, 'suggestion' => null];
         }
 
-        $decoded = json_decode($content, true);
+        $decoded    = json_decode($content, true);
+        $concrete   = (bool) ($decoded['concrete'] ?? true);
+        $suggestion = trim((string) ($decoded['suggestion'] ?? ''));
 
-        return (bool) ($decoded['concrete'] ?? true);
+        return [
+            'concrete'   => $concrete,
+            'suggestion' => $suggestion !== '' ? $suggestion : null,
+        ];
     }
 
     /**
@@ -91,14 +101,19 @@ class MatchCriteriaService
     protected function concreteSystemPrompt(): string
     {
         return <<<'TEXT'
-            You help a dating app determine whether a stated match preference is specific enough to search with.
+            You help a dating app determine whether a stated match preference is specific enough to search with,
+            and if not, suggest what kind of detail would help.
 
             Respond with ONLY strict JSON (no markdown, no commentary) in exactly this shape:
-            {"concrete": true|false}
+            {"concrete": true|false, "suggestion": "<short example, only when concrete is false, otherwise empty string>"}
 
             Rules:
             - true: the preference names a specific, actionable value (e.g. "5'6\" or taller", "at least 170cm", "loves hiking and camping").
             - false: the preference is vague with no actionable value (e.g. "good height", "nice", "attractive", "tall").
+            - When false, "suggestion" is a short, natural phrase (max 15 words) giving a concrete example tailored
+              to what they said — e.g. for "good height" suggest an exact height range like "5'6\" or taller"; for
+              "nice personality" suggest a specific trait like "outgoing" or "family-oriented". No markdown, no
+              surrounding quotes around the example itself.
             TEXT;
     }
 
