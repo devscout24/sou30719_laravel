@@ -22,6 +22,7 @@ class WorkspaceConversationService
     protected const PILL_DELETE = 'Delete post';
     protected const PILL_MALE = 'Male';
     protected const PILL_FEMALE = 'Female';
+    protected const PILL_DATING_PREFERENCE = 'Dating Preference';
 
     protected const MSG_SELECT_PROMPT = 'Select one of the optional prompts below';
     protected const MSG_UNDER_DEV = 'This feature is currently under development and will be available soon.';
@@ -37,9 +38,9 @@ class WorkspaceConversationService
     protected const MSG_CHOOSE_OPTION = 'Please choose one of the options below.';
     protected const MIN_DESCRIPTION_WORDS = 150;
 
-    protected const MSG_PROFILE_INCOMPLETE = 'Please complete your dating preference on your profile before we can find matches for you.';
-    protected const MSG_ASK_GENDER = "What are you looking for — male or female?";
-    protected const MSG_ASK_GENDER_AGAIN = "Sorry, I didn't catch that. Are you looking for male or female matches?";
+    protected const MSG_PROFILE_INCOMPLETE = "You haven't completed your dating preference yet, so I can't use it to find matches. Please choose one of the options below instead, or complete your profile first.";
+    protected const MSG_ASK_GENDER = 'Hello! What are you looking for?';
+    protected const MSG_ASK_GENDER_AGAIN = "Sorry, I didn't catch that. Please choose one of the options below.";
     protected const MSG_NO_MATCHES = 'No matching found. Please check back again later.';
 
     protected const MSG_MARKETPLACE_GUIDANCE = 'Let\'s create your advertisement. Please provide the product/service details through the form — image, type, category, link, and discount — then send it over.';
@@ -509,38 +510,25 @@ class WorkspaceConversationService
 
     // ─── Matches ─────────────────────────────────────────────────────────────
 
+    /**
+     * Always asks the 3-way choice (Male / Female / Dating Preference) —
+     * never auto-resolves from a saved preference silently. The saved
+     * preference is only used when the user explicitly asks for it.
+     */
     protected function enterMatchesWorkspace(AiConversation $conversation, Workspace $workspace): void
     {
-        /** @var User $user */
-        $user = $conversation->user()->first();
-
-        if (!$user || !$user->hasCompletedDatingProfile()) {
-            $conversation->update(['workspace_id' => null, 'status' => 'idle']);
-            $this->storeReply($conversation, self::MSG_PROFILE_INCOMPLETE);
-            $this->storePills($conversation, $this->activePrompts());
-            return;
-        }
-
-        $conversation->update(['workspace_id' => $workspace->id]);
-
-        $gender = $conversation->match_gender ?: $user->datingPreference->interested_in;
-
-        if (!$gender) {
-            $conversation->update(['status' => 'awaiting_match_gender']);
-            $this->storeReply($conversation, self::MSG_ASK_GENDER);
-            $this->storePills($conversation, $this->genderPills());
-            return;
-        }
-
-        if (!$conversation->match_gender) {
-            $conversation->update(['match_gender' => $gender]);
-        }
-
-        $this->proceedWithGenderResolved($conversation, $gender);
+        $conversation->update(['workspace_id' => $workspace->id, 'status' => 'awaiting_match_gender']);
+        $this->storeReply($conversation, self::MSG_ASK_GENDER);
+        $this->storePills($conversation, $this->genderPills());
     }
 
     protected function handleAwaitingMatchGender(AiConversation $conversation, ?string $text): void
     {
+        if ($this->isDatingPreferenceChoice($text)) {
+            $this->searchUsingDatingPreference($conversation);
+            return;
+        }
+
         $gender = $this->replyClassifier->classifyGender((string) $text);
 
         if (!$gender) {
@@ -549,42 +537,71 @@ class WorkspaceConversationService
             return;
         }
 
-        $conversation->update(['match_gender' => $gender]);
-
-        $this->proceedWithGenderResolved($conversation, $gender);
+        $conversation->update(['match_gender' => $gender, 'status' => 'awaiting_match_criteria']);
+        $this->storeReply($conversation, $this->askMatchCriteriaMessage($gender));
     }
 
     /**
-     * Gender is resolved (from the message, saved preference, or pills). If
-     * criteria was stated but is too vague to act on, ask once for specifics;
-     * otherwise (or after that one round) go straight to searching.
+     * "Dating Preference" choice: use the user's saved DatingPreference row
+     * — gender from `interested_in`, ranking criteria from whatever's set in
+     * `partner_preferences`/`deal_breakers` — instead of asking them to
+     * describe what they're looking for. Bounces back to the same 3-way
+     * choice, still inside the Matches workspace, if their profile isn't
+     * complete enough to have a saved preference to use.
      */
-    protected function proceedWithGenderResolved(AiConversation $conversation, string $gender): void
+    protected function searchUsingDatingPreference(AiConversation $conversation): void
     {
-        $criteria = $conversation->match_criteria;
+        /** @var User $user */
+        $user = $conversation->user()->first();
 
-        if ($criteria && !$this->matchCriteria->isConcrete($criteria)) {
-            $conversation->update(['status' => 'awaiting_match_criteria']);
+        if (!$user || !$user->hasCompletedDatingProfile()) {
+            $this->storeReply($conversation, self::MSG_PROFILE_INCOMPLETE);
+            $this->storePills($conversation, $this->genderPills());
+            return;
+        }
+
+        $preference = $user->datingPreference;
+        $gender     = $preference->interested_in;
+        $criteria   = trim(implode('. ', array_filter([
+            $preference->partner_preferences,
+            $preference->deal_breakers,
+        ])));
+
+        $conversation->update([
+            'match_gender'   => $gender,
+            'match_criteria' => $criteria !== '' ? $criteria : null,
+        ]);
+
+        $this->searchMatches($conversation, $gender, $criteria !== '' ? $criteria : null);
+    }
+
+    /**
+     * Asks once for more specifics if the first answer is too vague to rank
+     * with (a ranking boost, not a hard gate — a second vague reply still
+     * proceeds). Detected via whether match_criteria is already set: it's
+     * only ever set here, after a first answer, so a second call with it
+     * already present means this is the follow-up round.
+     */
+    protected function handleAwaitingMatchCriteria(AiConversation $conversation, ?string $text): void
+    {
+        if (blank($text)) {
+            $this->storeReply($conversation, $this->askMatchCriteriaMessage((string) $conversation->match_gender));
+            return;
+        }
+
+        $criteria         = trim($text);
+        $alreadyAskedOnce = filled($conversation->match_criteria);
+
+        if (!$alreadyAskedOnce && !$this->matchCriteria->isConcrete($criteria)) {
+            $conversation->update(['match_criteria' => $criteria]);
             $this->storeReply(
                 $conversation,
-                sprintf('Could you be a bit more specific about "%s"? For example, an exact number or range would help.', $criteria)
+                sprintf('Could you be a bit more specific about "%s"? For example, an exact trait or number would help.', $criteria)
             );
             return;
         }
 
-        $this->searchMatches($conversation, $gender, $criteria);
-    }
-
-    /**
-     * One follow-up round only — matching-by-criteria is a ranking boost, not
-     * a hard gate, so proceed regardless of whether the reply is concrete now.
-     */
-    protected function handleAwaitingMatchCriteria(AiConversation $conversation, ?string $text): void
-    {
-        $criteria = filled($text) ? trim($text) : $conversation->match_criteria;
-
         $conversation->update(['match_criteria' => $criteria]);
-
         $this->searchMatches($conversation, $conversation->match_gender, $criteria);
     }
 
@@ -744,7 +761,9 @@ class WorkspaceConversationService
             $ranking = $rankingsByUserId->get($candidate->id);
 
             return [
+                'id'                  => $candidate->id,
                 'user_id'             => $candidate->id,
+                'avatar'              => asset($candidate->avatar ?? 'user.png'),
                 'name'                => $candidate->name,
                 'username'            => $candidate->username,
                 'city'                => $profile?->dating_location ?? $profile?->city,
@@ -790,7 +809,31 @@ class WorkspaceConversationService
 
     protected function genderPills(): array
     {
-        return [self::PILL_MALE, self::PILL_FEMALE];
+        return [self::PILL_MALE, self::PILL_FEMALE, self::PILL_DATING_PREFERENCE];
+    }
+
+    /**
+     * Exact match against the "Dating Preference" pill's label — deterministic,
+     * same pattern as matchWorkspaceExact(), not an AI classification.
+     */
+    protected function isDatingPreferenceChoice(?string $text): bool
+    {
+        if (blank($text)) {
+            return false;
+        }
+
+        return mb_strtolower(trim($text)) === mb_strtolower(self::PILL_DATING_PREFERENCE);
+    }
+
+    protected function askMatchCriteriaMessage(string $gender): string
+    {
+        $label = match ($gender) {
+            'male'   => 'men',
+            'female' => 'women',
+            default  => 'people',
+        };
+
+        return "What type of {$label} are you looking for? Describe them a bit.";
     }
 
     protected function guidanceFor(Workspace $workspace): string
