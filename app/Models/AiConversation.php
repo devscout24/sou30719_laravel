@@ -16,7 +16,6 @@ class AiConversation extends Model
         'post_id',
         'status',
         'topic',
-        'topic_clarify_attempts',
         'match_gender',
         'match_criteria',
         'description',
@@ -32,13 +31,12 @@ class AiConversation extends Model
     ];
 
     protected $casts = [
-        'status'                  => 'string',
-        'topic_clarify_attempts'  => 'integer',
-        'images'                  => 'array',
-        'tags'                    => 'array',
-        'ad_type'                 => 'string',
-        'discount_percentage'     => 'decimal:2',
-        'show_sale_badge'         => 'boolean',
+        'status'              => 'string',
+        'images'              => 'array',
+        'tags'                => 'array',
+        'ad_type'             => 'string',
+        'discount_percentage' => 'decimal:2',
+        'show_sale_badge'     => 'boolean',
     ];
 
     protected static function booted(): void
