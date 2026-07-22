@@ -20,6 +20,7 @@ class SendMessageRequest extends BaseApiRequest
             'product_url' => ['nullable', 'string', 'url', 'max:2000'],
             'discount_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'show_sale_badge' => ['nullable', 'boolean'],
+            'csv_file' => ['nullable', 'file', 'mimes:csv,txt', 'max:5120'],
         ];
     }
 }

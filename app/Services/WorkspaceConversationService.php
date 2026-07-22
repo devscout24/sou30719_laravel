@@ -48,6 +48,7 @@ class WorkspaceConversationService
     protected const MSG_AD_NEED_IMAGE = 'Please upload at least one image for your listing.';
     protected const MSG_AD_NEED_TYPE = 'Please choose whether this is a product or a service.';
     protected const MSG_AD_NEED_CATEGORY = 'Please choose a category for your listing.';
+    protected const MSG_AD_NEED_DESCRIPTION = 'Please add a description for your listing.';
     protected const MSG_AD_PUBLISHED = 'Your advertisement has been published successfully.';
 
     public function __construct(
@@ -105,7 +106,7 @@ class WorkspaceConversationService
      * to get the updated conversation state.
      *
      * @param  string[]  $imagePaths
-     * @param  array{ad_type?: ?string, category?: ?string, product_url?: ?string, discount_percentage?: ?float, show_sale_badge?: ?bool}  $extra
+     * @param  array{ad_type?: ?string, category?: ?string, product_url?: ?string, discount_percentage?: ?float, show_sale_badge?: ?bool, csv_path?: ?string}  $extra
      *         Market Place ad-form fields, present only while collecting in that workspace.
      * @return array{success: true}
      */
@@ -302,7 +303,7 @@ class WorkspaceConversationService
     }
 
     /**
-     * @param  array{ad_type?: ?string, category?: ?string, product_url?: ?string, discount_percentage?: ?float, show_sale_badge?: ?bool}  $extra
+     * @param  array{ad_type?: ?string, category?: ?string, product_url?: ?string, discount_percentage?: ?float, show_sale_badge?: ?bool, csv_path?: ?string}  $extra
      */
     protected function handleMarketplaceCollecting(AiConversation $conversation, ?string $text, array $imagePaths, array $extra): void
     {
@@ -317,6 +318,7 @@ class WorkspaceConversationService
         $productUrl         = $extra['product_url'] ?? $conversation->product_url;
         $discountPercentage = $extra['discount_percentage'] ?? $conversation->discount_percentage;
         $showSaleBadge      = $extra['show_sale_badge'] ?? $conversation->show_sale_badge ?? false;
+        $csvPath            = $extra['csv_path'] ?? $conversation->csv_path;
         $note               = filled($text) ? trim($text) : $conversation->image_description;
 
         $conversation->update([
@@ -326,6 +328,7 @@ class WorkspaceConversationService
             'product_url'         => $productUrl,
             'discount_percentage' => $discountPercentage,
             'show_sale_badge'     => $showSaleBadge,
+            'csv_path'            => $csvPath,
             'image_description'   => $note,
         ]);
 
@@ -341,6 +344,11 @@ class WorkspaceConversationService
 
         if (blank($category)) {
             $this->storeReply($conversation, self::MSG_AD_NEED_CATEGORY);
+            return;
+        }
+
+        if (blank($note)) {
+            $this->storeReply($conversation, self::MSG_AD_NEED_DESCRIPTION);
             return;
         }
 
@@ -486,6 +494,7 @@ class WorkspaceConversationService
                 'product_url'         => $conversation->product_url,
                 'discount_percentage' => $conversation->discount_percentage,
                 'show_sale_badge'     => $conversation->show_sale_badge ?? false,
+                'csv_path'            => $conversation->csv_path,
                 'visibility'          => 'public',
                 'status'              => 'published',
                 'published_at'        => now(),
@@ -752,6 +761,7 @@ class WorkspaceConversationService
             'product_url'         => $conversation->product_url,
             'discount_percentage' => $conversation->discount_percentage,
             'show_sale_badge'     => (bool) $conversation->show_sale_badge,
+            'csv_file'            => $conversation->csv_path ? ['path' => $conversation->csv_path] : null,
             'images'              => array_map(
                 fn (string $path) => ['path' => $path],
                 $conversation->images ?? []
