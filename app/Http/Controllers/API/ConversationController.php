@@ -92,6 +92,10 @@ class ConversationController extends Controller
             ->filter(fn ($value) => $value !== null)
             ->all();
 
+        if ($request->hasFile('csv_file')) {
+            $extra['csv_path'] = $this->uploader->storeCsv($request->file('csv_file'));
+        }
+
         $this->conversations->handleMessage($conversation, $validated['message'] ?? null, $imagePaths, $extra);
 
         return $this->success([], 'Message sent successfully');

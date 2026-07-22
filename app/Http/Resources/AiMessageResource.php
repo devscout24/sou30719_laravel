@@ -35,6 +35,10 @@ class AiMessageResource extends JsonResource
             );
         }
 
+        if ($this->type === 'ad_preview' && is_array($content) && !empty($content['csv_file']['path'])) {
+            $content['csv_file']['path'] = $this->toUrl($content['csv_file']['path']);
+        }
+
         if ($this->type === 'matches' && is_array($content)) {
             $content = array_map(function (array $candidate) {
                 if (!empty($candidate['photo']['path'])) {

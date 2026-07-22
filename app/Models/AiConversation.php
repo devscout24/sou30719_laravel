@@ -28,6 +28,7 @@ class AiConversation extends Model
         'product_url',
         'discount_percentage',
         'show_sale_badge',
+        'csv_path',
     ];
 
     protected $casts = [

@@ -55,6 +55,7 @@ class Post extends Model
         'product_url',
         'discount_percentage',
         'show_sale_badge',
+        'csv_path',
         'event_date',
         'event_location',
         'visibility',
