@@ -9,6 +9,8 @@ use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\FeedSearchController;
 use App\Http\Controllers\API\FriendController;
 use App\Http\Controllers\API\HelpCenterController;
+use App\Http\Controllers\API\MarketplaceSearchController;
+use App\Http\Controllers\API\MarketplaceTopicController;
 use App\Http\Controllers\API\MatchSearchController;
 use App\Http\Controllers\API\MatchTopicController;
 use App\Http\Controllers\API\NotificationController;
@@ -171,6 +173,18 @@ Route::middleware('auth:api')->group(function () {
     // ── Matches Search: tabbed, filterable browse of dating candidates ────────
     Route::controller(MatchSearchController::class)->group(function () {
         Route::get('/matches/search', 'search');
+    });
+
+    // ── Marketplace Topics: fixed (built-in) + user-added, unified ────────────
+    Route::controller(MarketplaceTopicController::class)->group(function () {
+        Route::get('/marketplace/topics', 'index');
+        Route::post('/marketplace/topics', 'store');
+        Route::delete('/marketplace/topics/{id}', 'destroy');
+    });
+
+    // ── Marketplace Search: tabbed, filterable browse of ads ───────────────────
+    Route::controller(MarketplaceSearchController::class)->group(function () {
+        Route::get('/marketplace/search', 'search');
     });
 
     // ── AI Suggested Prompts: starter chips for AI chat empty states ──────────
